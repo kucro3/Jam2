@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.kucro3.jam2.util.MaxsContext.MaxsHandleMode;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Handle;
@@ -70,40 +71,26 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	public static void pushNewInstance(ClassWriter cw, int modifiers, String methodName,
 			String type, String[] constructorArguments, String[] exceptions, boolean varargs)
 	{
-		/**
-		 * Byte codes:
-		 * #0 (static) type methodName(arguments[0],...) [varargs = false]
-		 * 		new #type
-		 * 		dup
-		 * 		{
-		 * 			aload #((static ? 0 : 1) + index++)
-		 * 		}...
-		 * 		invokespecial #type.<init>()V
-		 * 		areturn
-		 * 	[Stack: #(arguments.length + 2), Local: #((static ? 0 : 1) + arguments.length)]
-		 * 		
-		 * #1 (static) type methodName([Ljava/lang/Object;) [varargs = true]
-		 * 		new #type
-		 * 		dup
-		 * 		{
-		 * 			aload #(static ? 0 : 1)
-		 * 			iaload #index++
-		 *		}...
-		 *		invokespecial #type.<init>()V
-		 * 		areturn
-		 * 	[Stack: #(arguments.length + 3), Local: #(static ? 1 : 2)]
-		 */
-		
+		if(varargs)
+			modifiers |= ACC_VARARGS;
+		MaxsContext mctx = MaxsContext.newContext(MaxsHandleMode.DELTA);
+		mctx.setStackDelta(1);
+		String descriptor = _toConstructorDescriptor(constructorArguments);
 		boolean selfStatic = Modifier.isStatic(modifiers);
 		String[] arguments = varargs ? new String[] {"[Ljava/lang/Object;"}
 				: constructorArguments;
-		MethodVisitor mv = _newMethod(cw, modifiers, methodName, type, arguments, exceptions);
+		MethodVisitor mv = _newMethod(cw, modifiers, methodName, 
+				Type.getObjectType(type).getDescriptor(), arguments, exceptions);
 		
 		mv.visitTypeInsn(NEW, type);
 		mv.visitInsn(DUP);
-		//TODO
-		mv.visitMethodInsn(INVOKESPECIAL, type, "<init>", _toConstructorDescriptor(constructorArguments), false);
+		_pushCallerProcessCallingPreprocess(mv, arguments.length, type, descriptor,
+				varargs, true, selfStatic, mctx, -1);
+		mv.visitMethodInsn(INVOKESPECIAL, type, "<init>", descriptor, false);
 		mv.visitInsn(ARETURN);
+		mv.visitEnd();
+		mctx.compute();
+		mctx.visitMaxs(mv);
 	}
 	
 	public static void pushFieldGetter(ClassWriter cw, int modifiers, String name,
@@ -802,6 +789,8 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	static String[] _toDescriptors(Class<?>[] classes)
 	{
+		if(classes == null)
+			return new String[0];
 		String[] descriptors = new String[classes.length];
 		for(int i = 0; i < classes.length; i++)
 			descriptors[i] = Type.getDescriptor(classes[i]);

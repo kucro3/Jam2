@@ -50,6 +50,12 @@ public class ConstructorContext extends AccessableContext
 		this.exceptionTypes = exceptionTypes;
 	}
 	
+	public final ConstructorContext copyAsConstructor()
+	{
+		return new ConstructorContext(getDeclaringClass(), getDeclaringClassInternalName(),
+				getArguments(), getArgumentDescriptors(), getExceptionTypes(), getExceptions());
+	}
+	
 	public Class<?> getDeclaringClass()
 	{
 		return declaringClass;

@@ -52,6 +52,14 @@ public class MethodContext extends ConstructorContext
 		this.methodName = methodName;
 	}
 	
+	public final MethodContext copyAsMethod()
+	{
+		return new MethodContext(getDeclaringClass(), getDeclaringClassInternalName(), getMethodName(),
+				getReturnType(), getReturnTypeDescriptor(),
+				getArguments(), getArgumentDescriptors(),
+				getExceptionTypes(), getExceptions());
+	}
+	
 	public Class<?> getReturnType()
 	{
 		return returnType;

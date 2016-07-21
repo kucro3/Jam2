@@ -44,6 +44,12 @@ public class FieldContext extends AccessableContext
 		this.fieldName = fieldName;
 	}
 	
+	public final FieldContext copyAsField()
+	{
+		return new FieldContext(getDeclaringClass(), getDeclaringClassInternalName(), getFieldName(),
+				getType(), getDescriptor());
+	}
+	
 	public String getFieldName()
 	{
 		return fieldName;
