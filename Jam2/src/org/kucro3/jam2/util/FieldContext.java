@@ -2,51 +2,65 @@ package org.kucro3.jam2.util;
 
 import java.lang.reflect.Field;
 
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Type;
 
-public class FieldContext extends AccessableContext
+public class FieldContext extends FieldVisitor implements AccessableContext
 {
 	public static FieldContext newContext(Field field)
 	{
-		return new FieldContext(field.getDeclaringClass(), field.getName(), field.getType());
+		return new FieldContext(field.getDeclaringClass(), field.getModifiers(), field.getName(), field.getType());
 	}
 	
-	public static FieldContext newContext(Class<?> declaringClass, String fieldName, Class<?> type)
+	public static FieldContext newContext(Class<?> declaringClass, int modifier, String fieldName, Class<?> type)
 	{
-		return new FieldContext(declaringClass, fieldName, type);
+		return new FieldContext(declaringClass, modifier, fieldName, type);
 	}
 	
-	public static FieldContext newContext(String declaringClass, String fieldName, String type)
+	public static FieldContext newContext(String declaringClass, int modifier, String fieldName, Class<?> type)
 	{
-		return new FieldContext(declaringClass, fieldName, type);
+		return new FieldContext(declaringClass, modifier, fieldName, type);
 	}
 	
-	FieldContext(Class<?> declaringClass, String fieldName, Class<?> type)
+	public static FieldContext newContext(String declaringClass, int modifier, String fieldName, String type)
 	{
-		this(declaringClass, Type.getInternalName(declaringClass), fieldName,
+		return new FieldContext(declaringClass, modifier, fieldName, type);
+	}
+	
+	FieldContext(Class<?> declaringClass, int modifier, String fieldName, Class<?> type)
+	{
+		this(declaringClass, Type.getInternalName(declaringClass), modifier, fieldName,
 				type, Type.getDescriptor(type));
 	}
 	
-	FieldContext(String declaringClass, String fieldName, String type)
+	FieldContext(String declaringClass, int modifier, String fieldName, Class<?> type)
 	{
-		this(null, declaringClass, fieldName,
+		this(null, declaringClass, modifier, fieldName,
+				type, Type.getDescriptor(type));
+	}
+	
+	FieldContext(String declaringClass, int modifier, String fieldName, String type)
+	{
+		this(null, declaringClass, modifier, fieldName,
 				null, type);
 	}
 	
-	protected FieldContext(Class<?> declaringClass, String declaringClassInternalName, String fieldName,
+	protected FieldContext(Class<?> declaringClass, String declaringClassInternalName, int modifier, String fieldName,
 			Class<?> type, String descriptor)
 	{
+		super(0);
 		this.declaringClass = declaringClass;
 		this.classInternalName = declaringClassInternalName;
 		this.type = type;
 		this.descriptor = descriptor;
 		this.fieldName = fieldName;
+		this.modifier = modifier;
 	}
 	
 	public final FieldContext copyAsField()
 	{
-		return new FieldContext(getDeclaringClass(), getDeclaringClassInternalName(), getFieldName(),
+		return new FieldContext(getDeclaringClass(), getDeclaringClassInternalName(), getModifier(), getFieldName(),
 				getType(), getDescriptor());
 	}
 	
@@ -77,10 +91,30 @@ public class FieldContext extends AccessableContext
 	
 	public FieldVisitor getFieldVisitor()
 	{
-		return fv;
+		return super.fv;
 	}
 	
-	FieldVisitor fv;
+	@Override
+	public int getModifier()
+	{
+		return modifier;
+	}
+	
+	public FieldVisitor bind(ClassVisitor ref, ClassVisitor cv)
+	{
+		if(super.fv == null)
+			return super.fv = cv.visitField(modifier, fieldName, descriptor, null, null);
+		throw new IllegalStateException("Already binded");
+	}
+	
+	public FieldVisitor ensureBinded(ClassVisitor ref, ClassVisitor cv)
+	{
+		if(super.fv == null)
+			return bind(ref, cv);
+		return super.fv;
+	}
+	
+	private final int modifier;
 	
 	private final Class<?> declaringClass;
 	

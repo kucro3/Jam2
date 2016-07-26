@@ -2,106 +2,67 @@ package org.kucro3.jam2.util;
 
 import java.lang.reflect.Constructor;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 import static org.kucro3.jam2.util.Jam2Util.*;
 
-public class ConstructorContext extends AccessableContext
+public class ConstructorContext extends MethodContext
 {
 	public static ConstructorContext newContext(Constructor<?> constructor)
 	{
-		return new ConstructorContext(constructor.getDeclaringClass(), constructor.getParameterTypes(), 
+		return new ConstructorContext(constructor.getDeclaringClass(), constructor.getModifiers(), constructor.getParameterTypes(), 
 				constructor.getExceptionTypes());
 	}
 	
-	public static ConstructorContext newContext(Class<?> declaringClass, Class<?>[] arguments,
+	public static ConstructorContext newContext(Class<?> declaringClass, int modifier, Class<?>[] arguments,
 			Class<?>... throwings)
 	{
-		return new ConstructorContext(declaringClass, arguments, throwings);
+		return new ConstructorContext(declaringClass, modifier, arguments, throwings);
 	}
 	
-	public static ConstructorContext newContext(String declaringClass, String[] arguments,
+	public static ConstructorContext newContext(String declaringClass, int modifier, Class<?>[] arguments,
+			Class<?>... throwings)
+	{
+		return new ConstructorContext(declaringClass, modifier, arguments, throwings);
+	}
+	
+	public static ConstructorContext newContext(String declaringClass, int modifier, String[] arguments,
 			String... throwings)
 	{
-		return new ConstructorContext(declaringClass, arguments, throwings);
+		return new ConstructorContext(declaringClass, modifier, arguments, throwings);
 	}
 	
-	ConstructorContext(Class<?> declaringClass, Class<?>[] arguments, Class<?>[] throwings)
+	ConstructorContext(Class<?> declaringClass, int modifier, Class<?>[] arguments, Class<?>[] throwings)
 	{
-		this(declaringClass, Type.getInternalName(declaringClass),
+		this(declaringClass, Type.getInternalName(declaringClass), modifier,
 				arguments, _toDescriptors(arguments),
 				throwings, _toDescriptors(throwings));
 	}
 	
-	ConstructorContext(String delcaringClassInternalName, String[] argumentDescriptors, String[] throwings)
+	ConstructorContext(String declaringClass, int modifier, Class<?>[] arguments, Class<?>[] throwings)
 	{
-		this(null, delcaringClassInternalName, null, argumentDescriptors, null, throwings);
+		this(null, declaringClass, modifier,
+				arguments, _toDescriptors(arguments),
+				throwings, _toDescriptors(throwings));
 	}
 	
-	protected ConstructorContext(Class<?> declaringClass, String declaringClassInternalName,
+	ConstructorContext(String delcaringClassInternalName, int modifier, String[] argumentDescriptors, String[] throwings)
+	{
+		this(null, delcaringClassInternalName, modifier, null, argumentDescriptors, null, throwings);
+	}
+	
+	protected ConstructorContext(Class<?> declaringClass, String declaringClassInternalName, int modifier,
 			Class<?>[] arguments, String[] argumentDescriptors, Class<?>[] exceptionTypes, String[] exceptions)
 	{
-		this.declaringClass = declaringClass;
-		this.classInternalName = declaringClassInternalName;
-		this.arguments = arguments;
-		this.argumentDescriptors = argumentDescriptors;
-		this.exceptions = exceptions;
-		this.exceptionTypes = exceptionTypes;
+		super(declaringClass, declaringClassInternalName, modifier, "<init>",
+				void.class, "V",
+				arguments, argumentDescriptors,
+				exceptionTypes, exceptions);
 	}
 	
 	public final ConstructorContext copyAsConstructor()
 	{
-		return new ConstructorContext(getDeclaringClass(), getDeclaringClassInternalName(),
+		return new ConstructorContext(getDeclaringClass(), getDeclaringClassInternalName(), getModifier(),
 				getArguments(), getArgumentDescriptors(), getExceptionTypes(), getExceptions());
 	}
-	
-	public Class<?> getDeclaringClass()
-	{
-		return declaringClass;
-	}
-	
-	public String getDeclaringClassInternalName()
-	{
-		return classInternalName;
-	}
-	
-	public Class<?>[] getArguments()
-	{
-		return arguments;
-	}
-	
-	public String[] getArgumentDescriptors()
-	{
-		return argumentDescriptors;
-	}
-	
-	public String[] getExceptions()
-	{
-		return exceptions;
-	}
-	
-	public Class<?>[] getExceptionTypes()
-	{
-		return exceptionTypes;
-	}
-	
-	public MethodVisitor getMethodVisitor()
-	{
-		return mv;
-	}
-	
-	MethodVisitor mv;
-	
-	private final String[] exceptions;
-	
-	private final Class<?>[] exceptionTypes;
-	
-	private final String classInternalName;
-	
-	private final Class<?> declaringClass;
-	
-	private final String[] argumentDescriptors;
-	
-	private final Class<?>[] arguments;
 }
