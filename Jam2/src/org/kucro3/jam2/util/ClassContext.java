@@ -7,12 +7,19 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import static org.kucro3.jam2.util.Jam2Util.*;
 
-public class ClassContext extends ClassVisitor
+public class ClassContext extends ClassVisitor implements Opcodes
 {
+	public static void main(String[] args)
+	{
+		ClassContext ctx =
+				new ClassContext(V1_8, ACC_PUBLIC, "test", null, "java/lang/Object", null);
+	}
+	
 	public ClassContext(int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
 		this(ClassWriter.COMPUTE_FRAMES, version, access, name, signature, superName, interfaces);
@@ -189,6 +196,11 @@ public class ClassContext extends ClassVisitor
 	static String toFieldKey(String name)
 	{
 		return name;
+	}
+	
+	public Class<?> newClass()
+	{
+		return Jam2Util.newClass(internalName.replace("/", "."), this);
 	}
 	
 	public int getAccess()

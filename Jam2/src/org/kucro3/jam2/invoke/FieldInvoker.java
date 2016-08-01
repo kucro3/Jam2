@@ -29,6 +29,10 @@ public abstract class FieldInvoker {
 		return type;
 	}
 	
+	public abstract void set(Object obj, Object ref);
+	
+	public abstract Object get(Object obj);
+	
 	final Class<?> declaringClass;
 	
 	final int modifier;

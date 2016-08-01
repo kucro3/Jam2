@@ -1,5 +1,7 @@
 package org.kucro3.jam2.invoke;
 
+import org.objectweb.asm.Type;
+
 public abstract class MethodInvoker {
 	protected MethodInvoker(Class<?> declaringClass, int modifier, String name, Class<?> returnType, Class<?>[] arguments)
 	{
@@ -8,6 +10,19 @@ public abstract class MethodInvoker {
 		this.returnType = returnType;
 		this.arguments = arguments;
 		this.modifier = modifier;
+		this.descriptor = toDescriptor(name, returnType, arguments);
+	}
+	
+	static String toDescriptor(String name, Class<?> returnType, Class<?>[] arguments)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append(name);
+		sb.append("(");
+		for(int i = 0; i < arguments.length; i++)
+			sb.append(Type.getDescriptor(arguments[i]));
+		sb.append(")");
+		sb.append(Type.getDescriptor(returnType));
+		return sb.toString();
 	}
 	
 	public final Class<?> getDeclaringClass()
@@ -36,6 +51,13 @@ public abstract class MethodInvoker {
 	}
 	
 	public abstract Object invoke(Object obj, Object... args);
+	
+	public String getDescriptor()
+	{
+		return descriptor;
+	}
+	
+	final String descriptor;
 	
 	final int modifier;
 	
