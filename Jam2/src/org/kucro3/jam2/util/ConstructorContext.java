@@ -36,14 +36,14 @@ public class ConstructorContext extends MethodContext
 	{
 		this(declaringClass, Type.getInternalName(declaringClass), modifier,
 				arguments, _toDescriptors(arguments),
-				throwings, _toDescriptors(throwings));
+				throwings, _toInternalNames(throwings));
 	}
 	
 	ConstructorContext(String declaringClass, int modifier, Class<?>[] arguments, Class<?>[] throwings)
 	{
 		this(null, declaringClass, modifier,
 				arguments, _toDescriptors(arguments),
-				throwings, _toDescriptors(throwings));
+				throwings, _toInternalNames(throwings));
 	}
 	
 	ConstructorContext(String delcaringClassInternalName, int modifier, String[] argumentDescriptors, String[] throwings)

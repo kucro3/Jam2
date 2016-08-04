@@ -54,17 +54,17 @@ public class MethodContext extends MethodVisitor implements AccessableContext
 	MethodContext(Class<?> declaringClass, int modifier, String methodName, Class<?> returnType, Class<?>[] arguments, Class<?>[] throwings)
 	{
 		this(declaringClass, Type.getInternalName(declaringClass), modifier, methodName,
-				returnType, Type.getInternalName(returnType),
+				returnType, Type.getDescriptor(returnType),
 				arguments, _toDescriptors(arguments),
-				throwings, _toDescriptors(throwings));
+				throwings, _toInternalNames(throwings));
 	}
 	
 	MethodContext(String declaringClass, int modifier, String methodName, Class<?> returnType, Class<?>[] arguments, Class<?>[] throwings)
 	{
 		this(null, declaringClass, modifier, methodName,
-				returnType, Type.getInternalName(returnType),
+				returnType, Type.getDescriptor(returnType),
 				arguments, _toDescriptors(arguments),
-				throwings, _toDescriptors(throwings));
+				throwings, _toInternalNames(throwings));
 	}
 	
 	MethodContext(String declaringClass, int modifier, String methodName, String returnType, String[] arguments, String[] throwings)
@@ -80,7 +80,7 @@ public class MethodContext extends MethodVisitor implements AccessableContext
 			Class<?>[] arguments, String[] argumentDescriptors,
 			Class<?>[] exceptionTypes, String[] throwings)
 	{
-		super(0);
+		super(ClassContext.API);
 		this.declaringClass = declaringClass;
 		this.classInternalName = declaringClassInternalName;
 		this.methodName = methodName;

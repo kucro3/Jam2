@@ -14,26 +14,21 @@ import static org.kucro3.jam2.util.Jam2Util.*;
 
 public class ClassContext extends ClassVisitor implements Opcodes
 {
-	public static void main(String[] args)
-	{
-		ClassContext ctx =
-				new ClassContext(V1_8, ACC_PUBLIC, "test", null, "java/lang/Object", null);
-	}
-	
 	public ClassContext(int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
-		this(ClassWriter.COMPUTE_FRAMES, version, access, name, signature, superName, interfaces);
+		this(API, version, access, name, signature, superName, interfaces);
 	}
 	
-	public ClassContext(int flags, int version, int access, String name, String signature, String superName, String[] interfaces)
+	public ClassContext(int api, int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
-		super(flags, new ClassWriter(0));
+		super(api, new ClassWriter(0));
 		this.version = version;
 		this.access = access;
 		this.internalName = name;
 		this.signature = signature;
 		this.superClass = superName;
 		this.interfaces = interfaces;
+		this.visit(version, access, name, signature, superName, interfaces);
 	}
 	
 	public MethodContext addMethod(int modifier, String name, Class<?> returnType, Class<?>[] arguments, Class<?>[] throwings)
@@ -228,6 +223,11 @@ public class ClassContext extends ClassVisitor implements Opcodes
 		return version;
 	}
 	
+	public String getInternalName()
+	{
+		return internalName;
+	}
+	
 	public byte[] toByteArray()
 	{
 		return ((ClassWriter)super.cv).toByteArray();
@@ -273,11 +273,13 @@ public class ClassContext extends ClassVisitor implements Opcodes
 	
 	private final ClassVisitor superBridge = new ClassContextSuperBridge();
 	
+	static final int API = 327680;
+	
 	class ClassContextSuperBridge extends ClassVisitor
 	{
 		ClassContextSuperBridge()
 		{
-			super(0, ClassContext.this);
+			super(API, ClassContext.this);
 		}
 		
 		@Override

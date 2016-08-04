@@ -49,7 +49,7 @@ public class FieldContext extends FieldVisitor implements AccessableContext
 	protected FieldContext(Class<?> declaringClass, String declaringClassInternalName, int modifier, String fieldName,
 			Class<?> type, String descriptor)
 	{
-		super(0);
+		super(ClassContext.API);
 		this.declaringClass = declaringClass;
 		this.classInternalName = declaringClassInternalName;
 		this.type = type;

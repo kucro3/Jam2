@@ -25,12 +25,12 @@ class FieldInvokerLambdaImpl extends FieldInvoker {
 	
 	final LambdaSet setter;
 	
-	static interface LambdaGet
+	public static interface LambdaGet
 	{
 		public Object get(Object obj);
 	}
 	
-	static interface LambdaSet
+	public static interface LambdaSet
 	{
 		public void set(Object obj, Object args);
 	}

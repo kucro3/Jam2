@@ -68,14 +68,22 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	}
 	
 	public static void pushNewInstance(ClassVisitor cw, int modifiers, String methodName,
-			Class<?> type, Class<?>[] constructorArguments, Class<?>[] exceptions, boolean varargs)
+			Class<?> type, Class<?>[] constructorArguments, Class<?>[] exceptions, boolean varargs, boolean objReturn)
 	{
 		pushNewInstance(cw, modifiers, methodName, Type.getInternalName(type),
-				varargs ? null : _toDescriptors(constructorArguments), _toDescriptors(exceptions), varargs);
+				varargs ? null : _toDescriptors(constructorArguments), _toDescriptors(exceptions), varargs, objReturn);
 	}
 	
 	public static void pushNewInstance(ClassVisitor cw, int modifiers, String methodName,
-			String type, String[] constructorArguments, String[] exceptions, boolean varargs)
+			ConstructorContext cCtx, boolean varags, boolean objReturn)
+	{
+		pushNewInstance(cw, modifiers, methodName,
+				cCtx.getDeclaringClassInternalName(), cCtx.getArgumentDescriptors(), cCtx.getExceptions(),
+				varags, objReturn);
+	}
+	
+	public static void pushNewInstance(ClassVisitor cw, int modifiers, String methodName,
+			String type, String[] constructorArguments, String[] exceptions, boolean varargs, boolean objReturn)
 	{
 		if(varargs)
 			modifiers |= ACC_VARARGS;
@@ -86,11 +94,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		String[] arguments = varargs ? new String[] {"[Ljava/lang/Object;"}
 				: constructorArguments;
 		MethodVisitor mv = _newMethod(cw, modifiers, methodName, 
-				Type.getObjectType(type).getDescriptor(), arguments, exceptions);
+				objReturn ? "Ljava/lang/Object;" : Type.getObjectType(type).getDescriptor(), arguments, exceptions);
 		
 		mv.visitTypeInsn(NEW, type);
 		mv.visitInsn(DUP);
-		_pushCallerProcessCallingPreprocess(mv, arguments.length, type, descriptor,
+		_pushCallerProcessCallingPreprocess(mv, constructorArguments.length, type, descriptor,
 				varargs, true, selfStatic, mctx, -1);
 		mv.visitMethodInsn(INVOKESPECIAL, type, "<init>", descriptor, false);
 		mv.visitInsn(ARETURN);
@@ -100,26 +108,26 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	}
 	
 	public static void pushFieldGetter(ClassVisitor cw, int modifiers, String name,
-			FieldContext ctx, boolean objReturn)
+			FieldContext ctx, boolean objArg, boolean objReturn)
 	{
-		pushFieldGetter(cw, ctx.getModifier(), name,
+		pushFieldGetter(cw, modifiers, name,
 				ctx.getDeclaringClassInternalName(), ctx.getFieldName(), ctx.getDescriptor(),
-				FieldType.fromModifier(ctx.getModifier()), objReturn);
+				FieldType.fromModifier(ctx.getModifier()), objArg, objReturn);
 	}
 	
 	public static void pushFieldGetter(ClassVisitor cw, int modifiers, String name,
-			Class<?> owner, String fieldName, Class<?> type, FieldType ft, boolean objReturn)
+			Class<?> owner, String fieldName, Class<?> type, FieldType ft, boolean objArg, boolean objReturn)
 	{
-		pushFieldGetter(cw, modifiers, name, Type.getInternalName(owner), fieldName, Type.getDescriptor(type), ft, objReturn);
+		pushFieldGetter(cw, modifiers, name, Type.getInternalName(owner), fieldName, Type.getDescriptor(type), ft, objArg, objReturn);
 	}
 	
 	public static void pushFieldGetter(ClassVisitor cw, int modifiers, String name, 
-			String ownerInternalName, String fieldName, String type, FieldType ft, boolean objReturn)
+			String ownerInternalName, String fieldName, String type, FieldType ft, boolean objArg, boolean objReturn)
 	{
 		boolean selfStatic = (modifiers & ACC_STATIC) != 0;
 		int delta = selfStatic ? -1 : 0;
 		MethodVisitor mv = _newMethod(cw, modifiers, name, objReturn ? "Ljava/lang/Object;" : type, 
-				Type.getObjectType(ownerInternalName).getDescriptor(), null);
+				objArg ? "Ljava/lang/Object;" : Type.getObjectType(ownerInternalName).getDescriptor(), null);
 		mv.visitCode();
 		if(!ft.isStatic())
 		{
@@ -308,6 +316,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		_pushCallerProcessCalling(mv, insn, lambda3.function(callingClass), methodName, callingDescriptor, ct.getFlag());
 		_pushCallerProcessReturn(mv, returnTypeDescriptor, objReturn, isVoid);
 		
+		mctx.compute();
 		mctx.visitMaxs(mv);
 		mv.visitEnd();
 	}
@@ -367,11 +376,23 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	public static MethodVisitor pushFunctionalLambda(ClassVisitor cw, String internalName, MethodVisitor mv, LambdaContext ctx)
 	{
-		return pushFunctionalLambda(cw, internalName, mv, ctx, false);
+		return pushFunctionalLambda(cw, internalName, mv, ctx, false, null);
+	}
+	
+	public static MethodVisitor pushFunctionalLambda(ClassVisitor cw, String internalName, MethodVisitor mv, LambdaContext ctx, 
+			boolean reserveMethodVisitor)
+	{
+		return pushFunctionalLambda(cw, internalName, mv, ctx, reserveMethodVisitor, null);
 	}
 	
 	public static MethodVisitor pushFunctionalLambda(ClassVisitor cw, String internalName, MethodVisitor mv, LambdaContext ctx,
-			boolean reserveMethodVisitor)
+			String lambdaFunctionName)
+	{
+		return pushFunctionalLambda(cw, internalName, mv, ctx, false, lambdaFunctionName);
+	}
+	
+	public static MethodVisitor pushFunctionalLambda(ClassVisitor cw, String internalName, MethodVisitor mv, LambdaContext ctx,
+			boolean reserveMethodVisitor, String lambdaFunctionName)
 	{
 		MethodVisitor rt;
 		
@@ -379,7 +400,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		{
 			String syntheticInternalName;
 			if((syntheticInternalName = ctx.internalLambdaName) == null)
-				syntheticInternalName = ctx.internalLambdaName = _generateLambdaFunctionName();
+				syntheticInternalName = ctx.internalLambdaName = _generateLambdaFunctionName(lambdaFunctionName);
 			if(!reserveMethodVisitor)
 				rt = ctx.mv = _newMethod(cw, ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, 
 						syntheticInternalName, ctx.getDescriptor(), null);
@@ -704,7 +725,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	static String _nextDescriptor(String descriptor, int[] currentIndex)
 	{
 		char c;
-		while(true)
+		while(currentIndex[0] < descriptor.length())
 			switch(c = descriptor.charAt(currentIndex[0]))
 			{
 			case '(':
@@ -715,13 +736,23 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			case '[':
 				int start = currentIndex[0];
 				for(; currentIndex[0] < descriptor.length(); currentIndex[0]++)
-					if(descriptor.charAt(currentIndex[0]) == ';')
+					switch(c = descriptor.charAt(currentIndex[0]))
+					{
+					case '[':
+						continue;
+					case 'L':
+						for(; currentIndex[0] < descriptor.length(); currentIndex[0]++)
+							if(descriptor.charAt(currentIndex[0]) == ';')
+								return descriptor.substring(start, ++currentIndex[0]);
+					default:
 						return descriptor.substring(start, ++currentIndex[0]);
+					}
 				throw new IllegalArgumentException("Uncompleted descriptor: " + descriptor);
 			default:
 				currentIndex[0]++;
 				return String.valueOf(c); 
 			}
+		return null;
 	}
 	
 	static String _getReturnDescriptor(String descriptor)
@@ -750,8 +781,10 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return result;
 	}
 	
-	static String _generateLambdaFunctionName()
+	static String _generateLambdaFunctionName(String arg)
 	{
+		if(arg != null)
+			return new StringBuilder("lambda$").append(arg).toString();
 		return new StringBuilder("lambda$").append(UUID.randomUUID().toString().replace("-", "_")).toString();
 	}
 	
@@ -779,7 +812,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	static void _pushGetVoidObject(MethodVisitor mv)
 	{
-		mv.visitFieldInsn(GETSTATIC, "org/kucro3/tool/asm/ASMUtil", "RETURN_VOID", "Ljava/lang/Object;");
+		mv.visitFieldInsn(GETSTATIC, "org/kucro3/jam2/util/Jam2Util", "RETURN_VOID", "Ljava/lang/Object;");
 	}
 	
 	static String[] _toDescriptors(Class<?>[] classes)
@@ -790,6 +823,16 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		for(int i = 0; i < classes.length; i++)
 			descriptors[i] = Type.getDescriptor(classes[i]);
 		return descriptors;
+	}
+	
+	static String[] _toInternalNames(Class<?>[] classes)
+	{
+		if(classes == null)
+			return new String[0];
+		String[] names = new String[classes.length];
+		for(int i = 0; i < classes.length; i++)
+			names[i] = Type.getInternalName(classes[i]);
+		return names;
 	}
 	
 	static Type[] _toTypes(String[] descriptors)
