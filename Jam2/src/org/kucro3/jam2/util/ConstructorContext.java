@@ -6,7 +6,7 @@ import org.objectweb.asm.Type;
 
 import static org.kucro3.jam2.util.Jam2Util.*;
 
-public class ConstructorContext extends MethodContext
+public class ConstructorContext extends MethodContextImpl
 {
 	public static ConstructorContext newContext(Constructor<?> constructor)
 	{

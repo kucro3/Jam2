@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.kucro3.jam2.util.MaxsContext.MaxsHandleMode;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -19,6 +18,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+/**
+ * COMPUTE_MAXS flag required.
+ * @author Administrator
+ *
+ */
 public final class Jam2Util extends ClassLoader implements Opcodes {
 	private Jam2Util()
 	{
@@ -63,7 +67,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		mv.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(superClass),
 				"<init>", "()V", false);
 		mv.visitInsn(RETURN);
-		mv.visitMaxs(1, 1);
+		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 	}
 	
@@ -87,8 +91,6 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		if(varargs)
 			modifiers |= ACC_VARARGS;
-		MaxsContext mctx = MaxsContext.newContext(MaxsHandleMode.DELTA);
-		mctx.setStackDelta(1);
 		String descriptor = _toConstructorDescriptor(constructorArguments);
 		boolean selfStatic = Modifier.isStatic(modifiers);
 		String[] arguments = varargs ? new String[] {"[Ljava/lang/Object;"}
@@ -99,12 +101,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		mv.visitTypeInsn(NEW, type);
 		mv.visitInsn(DUP);
 		_pushCallerProcessCallingPreprocess(mv, constructorArguments.length, type, descriptor,
-				varargs, true, selfStatic, mctx, -1);
+				varargs, true, selfStatic, -1);
 		mv.visitMethodInsn(INVOKESPECIAL, type, "<init>", descriptor, false);
 		mv.visitInsn(ARETURN);
+		mv.visitMaxs(0, 0);
 		mv.visitEnd();
-		mctx.compute();
-		mctx.visitMaxs(mv);
 	}
 	
 	public static void pushFieldGetter(ClassVisitor cw, int modifiers, String name,
@@ -142,7 +143,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		}
 		else
 			mv.visitInsn(_forReturnInsn(type));
-		mv.visitMaxs(2 + (ft.isStatic() ? -1 : 0), 2 + delta);
+		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 	}
 	
@@ -182,10 +183,12 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 				mv.visitTypeInsn(CHECKCAST, boxingMapped);
 				pushUnboxing(mv, type);
 			}
+			else
+				mv.visitTypeInsn(CHECKCAST, Type.getType(type).getInternalName());
 		}
 		mv.visitFieldInsn(ft.put(), ownerInternalName, fieldName, type);
 		mv.visitInsn(RETURN);
-		mv.visitMaxs(2 + (ft.isStatic() ? -1 : 0), 3 + delta);
+		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 	}
 	
@@ -210,7 +213,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			mv.visitVarInsn(ALOAD, 0);
 		mv.visitFieldInsn(ft.get(), ownerInternalName, fieldname, type);
 		mv.visitInsn(_forReturnInsn(type));
-		mv.visitMaxs(1, ft.isStatic() ? 0 : 1);
+		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 	}
 	
@@ -229,8 +232,6 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	public static void pushSetter(ClassVisitor cw, int modifiers, String ownerInternalName,
 			String name, String fieldname, String type, FieldType ft)
 	{
-		int maxs = ft.isStatic() ? 1 : 2;
-		
 		MethodVisitor mv = _newMethod(cw, modifiers, name, DESCRIPTOR_VOID, type, null);
 		mv.visitCode();
 		if(!ft.isStatic())
@@ -238,7 +239,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		mv.visitVarInsn(_forLocalLoadInsn(type), 1);
 		mv.visitFieldInsn(ft.put(), ownerInternalName, fieldname, type);
 		mv.visitInsn(RETURN);
-		mv.visitMaxs(maxs, maxs);
+		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 	}
 	
@@ -265,7 +266,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			boolean vargs, boolean objReturn)
 	{
 		_pushCaller$(cw, modifiers, name, callingClass, methodName, returnType, arguments, ct,
-				vargs, objReturn, MaxsContext.newDefaultContext(),
+				vargs, objReturn, 
 				LAMBDA__TO_DESCRIPTOR_$0_0, LAMBDA_PUSHCALLER_$0_0, LAMBDA_PUSHCALLER_$1_0, LAMBDA_PUSHCALLER_$2_0);
 	}
 	
@@ -274,7 +275,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			boolean vargs, boolean objReturn)
 	{
 		_pushCaller$(cw, modifiers, name, callingClass, methodName, returnType, arguments, ct,
-				vargs, objReturn, MaxsContext.newDefaultContext(),
+				vargs, objReturn,
 				LAMBDA__TO_DESCRIPTOR_$0_1, LAMBDA_PUSHCALLER_$0_1, LAMBDA_PUSHCALLER_$1_1, LAMBDA_PUSHCALLER_$2_1);
 	}
 	
@@ -288,7 +289,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	private static void _pushCaller$(ClassVisitor cw, int modifiers, String name,
 			Object callingClass, String methodName, Object returnType, Object[] arguments, CallingType ct,
-			boolean vargs, boolean objReturn, MaxsContext mctx,
+			boolean vargs, boolean objReturn, 
 			LAMBDA__TODESCRIPTOR_$0 lambda0,
 			LAMBDA_PUSHCALLER_$0 lambda1, LAMBDA_PUSHCALLER_$1 lambda2, LAMBDA_PUSHCALLER_$2 lambda3)
 	{
@@ -312,17 +313,16 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		
 		String returnTypeDescriptor =
 				_pushCallerProcessCallingPreprocess(mv, arguments.length, lambda3.function(callingClass), 
-						callingDescriptor, vargs, isStatic, callerStatic, mctx, 0);
+						callingDescriptor, vargs, isStatic, callerStatic, 0);
 		_pushCallerProcessCalling(mv, insn, lambda3.function(callingClass), methodName, callingDescriptor, ct.getFlag());
 		_pushCallerProcessReturn(mv, returnTypeDescriptor, objReturn, isVoid);
 		
-		mctx.compute();
-		mctx.visitMaxs(mv);
+		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 	}
 	
 	static String _pushCallerProcessCallingPreprocess(MethodVisitor mv, int argumentLength, String ownerInternalName, String callingDescriptor,
-			boolean varargs, boolean isStatic, boolean selfStatic, MaxsContext mctx, int localOffset)
+			boolean varargs, boolean isStatic, boolean selfStatic, int localOffset)
 	{
 		int localDelta = selfStatic ? -1 : 0;
 		if(!isStatic)
@@ -342,14 +342,12 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 				mv.visitTypeInsn(CHECKCAST, Type.getType(_tryBoxingMapped(nd)).getInternalName());
 				pushUnboxing(mv, nd);
 			}
-			mctx.updateMaxs(argumentLength + 3, 3 + localDelta + localOffset);
 			return _nextDescriptor(callingDescriptor, i);
 		}
 		else
 		{
 			for(int j = 0; j < argumentLength; j++)
 				mv.visitVarInsn(ALOAD, j + 2 + localDelta + localOffset);
-			mctx.updateMaxs(argumentLength + 1, argumentLength + 2 + localDelta + localOffset);
 			return _getReturnDescriptor(callingDescriptor);
 		}
 	}

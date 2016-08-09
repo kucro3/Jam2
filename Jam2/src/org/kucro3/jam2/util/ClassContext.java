@@ -21,7 +21,7 @@ public class ClassContext extends ClassVisitor implements Opcodes
 	
 	public ClassContext(int api, int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
-		super(api, new ClassWriter(0));
+		super(api, new ClassWriter(ClassWriter.COMPUTE_MAXS));
 		this.version = version;
 		this.access = access;
 		this.internalName = name;
@@ -273,7 +273,7 @@ public class ClassContext extends ClassVisitor implements Opcodes
 	
 	private final ClassVisitor superBridge = new ClassContextSuperBridge();
 	
-	static final int API = 327680;
+	public static final int API = 327680;
 	
 	class ClassContextSuperBridge extends ClassVisitor
 	{

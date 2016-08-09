@@ -22,6 +22,28 @@ import java.lang.reflect.Constructor;
 
 @SuppressWarnings("rawtypes")
 public class Invoker implements Opcodes {
+	public static void main(String[] args)
+	{
+		Class<?>[] clzs = new Class<?>[] {
+			Jam2Util.class,
+			Object.class,
+			String.class,
+			Byte.class,
+			Short.class,
+			Integer.class,
+			Long.class,
+			Float.class,
+			Double.class,
+			Character.class,
+			Boolean.class
+		};
+		
+		long a = System.currentTimeMillis();
+		for(Class<?> clz : clzs)
+			Invoker.newInvoker(clz);
+		System.out.println("Cost: " + (System.currentTimeMillis() - a) + "ms");
+	}
+	
 	private Invoker(Class<?> owner)
 	{
 		this.owner = owner;
@@ -149,7 +171,7 @@ public class Invoker implements Opcodes {
 					+ ")V", false);
 		}
 		mInitMethods.visitInsn(RETURN);
-		mInitMethods.visitMaxs(3, 3);
+		mInitMethods.visitMaxs(0, 0);
 		mInitMethods.visitEnd();
 		
 		Constructor[] constructors = clz.getConstructors();
