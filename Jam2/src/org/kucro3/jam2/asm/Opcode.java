@@ -2,15 +2,23 @@ package org.kucro3.jam2.asm;
 
 import static org.kucro3.jam2.asm.OpcodeForm.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Opcode {
 	private Opcode(String name, int code, OpcodeForm form, int stack)
+	{
+		this(name, code, form, stack, 0, 0);
+	}
+	
+	private Opcode(String name, int code, OpcodeForm form, int stack, int root, int base)
 	{
 		this.code = code;
 		this.form = form;
 		this.stack = stack;
 		this.name = name;
+		this.root = root;
+		this.base = base;
 		OPCODE_MAP.put(name, code);
 	}
 	
@@ -43,6 +51,20 @@ public class Opcode {
 		return objRet;
 	}
 	
+	final int getRoot()
+	{
+		return root;
+	}
+	
+	final int getBase()
+	{
+		return base;
+	}
+	
+	private final int base;
+	
+	private final int root;
+	
 	private final String name;
 	
 	private final int code;
@@ -55,7 +77,7 @@ public class Opcode {
 	
 	static final Map<String, Integer> OPCODE_MAP;
 	
-	public static final int STACK_DYNC = -1;
+	public static final int STACK_DYNC = 0xFFFFFFFF;
 	
 	private static void init()
 	{
@@ -83,6 +105,26 @@ public class Opcode {
 		OPCODES[0x17] = new Opcode("fload", 0x17, VAR, 1);
 		OPCODES[0x18] = new Opcode("dload", 0x18, VAR, 1);
 		OPCODES[0x19] = new Opcode("aload", 0x19, VAR, 1);
+		OPCODES[0x1A] = new Opcode("iload_0", 0x1A, VAR_CST, 1, 0x15, 0x1A);
+		OPCODES[0x1B] = new Opcode("iload_1", 0x1B, VAR_CST, 1, 0x15, 0x1A);
+		OPCODES[0x1C] = new Opcode("iload_2", 0x1C, VAR_CST, 1, 0x15, 0x1A);
+		OPCODES[0x1D] = new Opcode("iload_3", 0x1D, VAR_CST, 1, 0x15, 0x1A);
+		OPCODES[0x1E] = new Opcode("lload_0", 0x1E, VAR_CST, 1, 0x16, 0x1E);
+		OPCODES[0x1F] = new Opcode("lload_1", 0x1F, VAR_CST, 1, 0x16, 0x1E);
+		OPCODES[0x20] = new Opcode("lload_2", 0x20, VAR_CST, 1, 0x16, 0x1E);
+		OPCODES[0x21] = new Opcode("lload_3", 0x21, VAR_CST, 1, 0x16, 0x1E);
+		OPCODES[0x22] = new Opcode("fload_0", 0x22, VAR_CST, 1, 0x17, 0x22);
+		OPCODES[0x23] = new Opcode("fload_1", 0x23, VAR_CST, 1, 0x17, 0x22);
+		OPCODES[0x24] = new Opcode("fload_2", 0x24, VAR_CST, 1, 0x17, 0x22);
+		OPCODES[0x25] = new Opcode("fload_3", 0x25, VAR_CST, 1, 0x17, 0x22);
+		OPCODES[0x26] = new Opcode("dload_0", 0x26, VAR_CST, 1, 0x18, 0x26);
+		OPCODES[0x27] = new Opcode("dload_1", 0x27, VAR_CST, 1, 0x18, 0x26);
+		OPCODES[0x28] = new Opcode("dload_2", 0x28, VAR_CST, 1, 0x18, 0x26);
+		OPCODES[0x29] = new Opcode("dload_3", 0x29, VAR_CST, 1, 0x18, 0x26);
+		OPCODES[0x2A] = new Opcode("aload_0", 0x2A, VAR_CST, 1, 0x19, 0x2A);
+		OPCODES[0x2B] = new Opcode("aload_1", 0x2B, VAR_CST, 1, 0x19, 0x2A);
+		OPCODES[0x2C] = new Opcode("aload_2", 0x2C, VAR_CST, 1, 0x19, 0x2A);
+		OPCODES[0x2D] = new Opcode("aload_3", 0x2D, VAR_CST, 1, 0x19, 0x2A);
 		OPCODES[0x2E] = new Opcode("iaload", 0x2E, VOID, -1);
 		OPCODES[0x2F] = new Opcode("laload", 0x2F, VOID, -1);
 		OPCODES[0x30] = new Opcode("faload", 0x30, VOID, -1);
@@ -96,6 +138,26 @@ public class Opcode {
 		OPCODES[0x38] = new Opcode("fstore", 0x38, VAR, -1);
 		OPCODES[0x39] = new Opcode("dstore", 0x39, VAR, -1);
 		OPCODES[0x3A] = new Opcode("astore", 0x3A, VAR, -1);
+		OPCODES[0x3B] = new Opcode("istore_0", 0x3B, VOID, -1, 0x36, 0x3B);
+		OPCODES[0x3C] = new Opcode("istore_1", 0x3C, VOID, -1, 0x36, 0x3B);
+		OPCODES[0x3D] = new Opcode("istore_2", 0x3D, VOID, -1, 0x36, 0x3B);
+		OPCODES[0x3E] = new Opcode("istore_3", 0x3E, VOID, -1, 0x36, 0x3B);
+		OPCODES[0x3F] = new Opcode("lstore_0", 0x3F, VOID, -1, 0x37, 0x3F);
+		OPCODES[0x40] = new Opcode("lstore_1", 0x40, VOID, -1, 0x37, 0x3F);
+		OPCODES[0x41] = new Opcode("lstore_2", 0x41, VOID, -1, 0x37, 0x3F);
+		OPCODES[0x42] = new Opcode("lstore_3", 0x42, VOID, -1, 0x37, 0x3F);
+		OPCODES[0x43] = new Opcode("fstore_0", 0x43, VOID, -1, 0x38, 0x43);
+		OPCODES[0x44] = new Opcode("fstore_1", 0x44, VOID, -1, 0x38, 0x43);
+		OPCODES[0x45] = new Opcode("fstore_2", 0x45, VOID, -1, 0x38, 0x43);
+		OPCODES[0x46] = new Opcode("fstore_3", 0x46, VOID, -1, 0x38, 0x43);
+		OPCODES[0x47] = new Opcode("dstore_0", 0x47, VOID, -1, 0x39, 0x47);
+		OPCODES[0x48] = new Opcode("dstore_1", 0x48, VOID, -1, 0x39, 0x47);
+		OPCODES[0x49] = new Opcode("dstore_2", 0x49, VOID, -1, 0x39, 0x47);
+		OPCODES[0x4A] = new Opcode("dstore_3", 0x4A, VOID, -1, 0x39, 0x47);
+		OPCODES[0x4B] = new Opcode("astore_0", 0x4B, VOID, -1, 0x3A, 0x4B);
+		OPCODES[0x4C] = new Opcode("astore_1", 0x4C, VOID, -1, 0x3A, 0x4B);
+		OPCODES[0x4D] = new Opcode("astore_2", 0x4D, VOID, -1, 0x3A, 0x4B);
+		OPCODES[0x4E] = new Opcode("astore_3", 0x4E, VOID, -1, 0x3A, 0x4B);
 		OPCODES[0x4F] = new Opcode("iastore", 0x4F, VOID, -3);
 		OPCODES[0x50] = new Opcode("lastore", 0x50, VOID, -3);
 		OPCODES[0x51] = new Opcode("fastore", 0x51, VOID, -3);

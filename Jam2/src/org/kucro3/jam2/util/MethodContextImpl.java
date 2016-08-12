@@ -71,7 +71,6 @@ public class MethodContextImpl extends MethodContext implements AccessableContex
 	@Override
 	public void visitMaxs(int a, int b)
 	{
-		System.out.println(methodName + " " + a + ":" + b);
 		super.visitMaxs(a, b);
 	}
 	

@@ -1,7 +1,5 @@
 package org.kucro3.jam2.invoke;
 
-import java.util.Map;
-
 import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaGet;
 import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaSet;
 import org.kucro3.jam2.util.ClassContext;
@@ -14,6 +12,7 @@ import org.kucro3.jam2.util.Jam2Util.CallingType;
 import org.objectweb.asm.Opcodes;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -22,28 +21,6 @@ import java.lang.reflect.Constructor;
 
 @SuppressWarnings("rawtypes")
 public class Invoker implements Opcodes {
-	public static void main(String[] args)
-	{
-		Class<?>[] clzs = new Class<?>[] {
-			Jam2Util.class,
-			Object.class,
-			String.class,
-			Byte.class,
-			Short.class,
-			Integer.class,
-			Long.class,
-			Float.class,
-			Double.class,
-			Character.class,
-			Boolean.class
-		};
-		
-		long a = System.currentTimeMillis();
-		for(Class<?> clz : clzs)
-			Invoker.newInvoker(clz);
-		System.out.println("Cost: " + (System.currentTimeMillis() - a) + "ms");
-	}
-	
 	private Invoker(Class<?> owner)
 	{
 		this.owner = owner;
@@ -100,13 +77,13 @@ public class Invoker implements Opcodes {
 		mInitConstructor.visitMethodInsn(INVOKESPECIAL, "org/kucro3/jam2/invoke/Initializer", "<init>", "()V", false);
 		mInitConstructor.visitFieldInsn(PUTSTATIC, initClassName, fInstance.getFieldName(), fInstance.getDescriptor());
 		mInitConstructor.visitInsn(RETURN);
-		mInitConstructor.visitMaxs(2, 1);
+		mInitConstructor.visitMaxs(0, 0);
 		mInitConstructor.visitEnd();
 		
 		mInitInstance.visitCode();
 		mInitInstance.visitFieldInsn(GETSTATIC, initClassName, fInstance.getFieldName(), fInstance.getDescriptor());
 		mInitInstance.visitInsn(ARETURN);
-		mInitInstance.visitMaxs(1, 0);
+		mInitInstance.visitMaxs(0, 0);
 		mInitInstance.visitEnd();
 		
 		Field[] fields = clz.getFields();
@@ -141,7 +118,7 @@ public class Invoker implements Opcodes {
 					+ ")V", false);
 		}
 		mInitFields.visitInsn(RETURN);
-		mInitFields.visitMaxs(4, 3);
+		mInitFields.visitMaxs(0, 0);
 		mInitFields.visitEnd();
 		
 		Method[] methods = clz.getMethods();
@@ -201,7 +178,7 @@ public class Invoker implements Opcodes {
 					+ ")V", false);
 		}
 		mInitConstructors.visitInsn(RETURN);
-		mInitConstructors.visitMaxs(3, 3);
+		mInitConstructors.visitMaxs(0, 0);
 		mInitConstructors.visitEnd();
 		
 		this.initClass = initClassCtx.newClass();

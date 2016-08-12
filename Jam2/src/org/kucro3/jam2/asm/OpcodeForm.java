@@ -3,6 +3,7 @@ package org.kucro3.jam2.asm;
 public enum OpcodeForm {
 	VOID,
 	VAR,
+	VAR_CST,
 	INT,
 	LDC,
 	IINC,

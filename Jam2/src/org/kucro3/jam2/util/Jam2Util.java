@@ -59,7 +59,12 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return INSTANCE.defineClass(name, byts, off, len);
 	}
 	
-	public static void pushEmptyConstructor(ClassWriter cw, int modifiers, Class<?> superClass)
+	public static String generateUUIDForClassName()
+	{
+		return UUID.randomUUID().toString().replace('-', '_');
+	}
+	
+	public static void pushEmptyConstructor(ClassVisitor cw, int modifiers, Class<?> superClass)
 	{
 		MethodVisitor mv = __init__(cw, modifiers, "()V", null);
 		mv.visitCode();
