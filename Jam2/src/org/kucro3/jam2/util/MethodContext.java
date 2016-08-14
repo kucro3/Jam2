@@ -49,6 +49,11 @@ public abstract class MethodContext extends MethodVisitor implements AccessableC
 		return newContext(method.getDeclaringClass(), method.getModifiers(), method.getName(), method.getReturnType(), method.getParameterTypes());
 	}
 	
+	public static MethodContext newContext(Method method, int modifier)
+	{
+		return newContext(method.getDeclaringClass(), modifier, method.getName(), method.getReturnType(), method.getParameterTypes());
+	}
+	
 	public static MethodContext newContext(Class<?> declaringClass, int modifier, String methodName, Class<?> returnType, Class<?>[] arguments,
 			Class<?>... throwings)
 	{

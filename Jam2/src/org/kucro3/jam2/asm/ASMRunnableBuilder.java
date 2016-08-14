@@ -7,24 +7,25 @@ import org.objectweb.asm.Opcodes;
 public class ASMRunnableBuilder extends ASMCodeBuilderRoot<ASMRunnableBuilder> implements Opcodes {
 	public static ASMRunnableBuilder newBuilder()
 	{
-		ClassContext ctx = new ClassContext(V1_8, ACC_PUBLIC | ACC_SUPER, 
-				"ASMRunnable_" + Jam2Util.generateUUIDForClassName(), null, "java/lang/Object",  new String[] {"java/lang/Runnable"});
-		return new ASMRunnableBuilder(ctx, "run", "V", null, null);
+		ClassContext ctx = new ClassContext(V1_8, ACC_PUBLIC, 
+				"org/kucro3/jam2/asm/ASMRunnable_" + Jam2Util.generateUUIDForClassName(),
+				null, "java/lang/Object",  new String[] {"java/lang/Runnable"});
+		return new ASMRunnableBuilder(ctx, "run", "V", null);
 	}
 	
-	ASMRunnableBuilder(ClassContext ctx, String methodName, String returnType, String[] arguments, String[] throwings)
+	ASMRunnableBuilder(ClassContext ctx, String methodName, String returnType, String[] arguments)
 	{
-		super(ctx.addMethod(ACC_PUBLIC, methodName, returnType, arguments, throwings));
+		super(ctx.addMethod(ACC_PUBLIC, methodName, returnType, arguments, null));
 		Jam2Util.pushEmptyConstructor(ctx, ACC_PUBLIC, Object.class);
-		this.classCtx = ctx;
+		this.ctx = ctx;
 	}
 	
 	public Runnable build()
 	{
-		super.end();
 		if(cached != null)
 			return cached;
-		Class<?> clz = classCtx.newClass();
+		super.end();
+		Class<?> clz = ctx.newClass();
 		try {
 			return cached = (Runnable) clz.newInstance();
 		} catch (InstantiationException | IllegalAccessException e) {
@@ -35,5 +36,5 @@ public class ASMRunnableBuilder extends ASMCodeBuilderRoot<ASMRunnableBuilder> i
 	
 	private Runnable cached;
 	
-	private final ClassContext classCtx;
+	private final ClassContext ctx;
 }

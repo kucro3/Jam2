@@ -66,10 +66,15 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	public static void pushEmptyConstructor(ClassVisitor cw, int modifiers, Class<?> superClass)
 	{
+		pushEmptyConstructor(cw, modifiers, Type.getInternalName(superClass));
+	}
+	
+	public static void pushEmptyConstructor(ClassVisitor cw, int modifiers, String superClass)
+	{
 		MethodVisitor mv = __init__(cw, modifiers, "()V", null);
 		mv.visitCode();
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(superClass),
+		mv.visitMethodInsn(INVOKESPECIAL, superClass,
 				"<init>", "()V", false);
 		mv.visitInsn(RETURN);
 		mv.visitMaxs(0, 0);
@@ -828,6 +833,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return descriptors;
 	}
 	
+	public static String[] toDescriptors(Class<?>[] classes)
+	{
+		return _toDescriptors(classes);
+	}
+	
 	static String[] _toInternalNames(Class<?>[] classes)
 	{
 		if(classes == null)
@@ -836,6 +846,16 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		for(int i = 0; i < classes.length; i++)
 			names[i] = Type.getInternalName(classes[i]);
 		return names;
+	}
+	
+	public static String[] toInternalNames(Class<?>[] classes)
+	{
+		return _toInternalNames(classes);
+	}
+	
+	public static String fromDescriptorToInternalName(String desc)
+	{
+		return Type.getType(desc).getInternalName();
 	}
 	
 	static Type[] _toTypes(String[] descriptors)

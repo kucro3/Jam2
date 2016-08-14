@@ -172,6 +172,26 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return iload(2);
 	}
 	
+	public T aload_0()
+	{
+		return aload(0);
+	}
+	
+	public T aload_1()
+	{
+		return aload(1);
+	}
+	
+	public T aload_2()
+	{
+		return aload(2);
+	}
+	
+	public T aload_3()
+	{
+		return aload(3);
+	}
+	
 	public T iload_3()
 	{
 		return iload(3);
