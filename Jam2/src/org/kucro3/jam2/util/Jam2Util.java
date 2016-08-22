@@ -4,6 +4,7 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
@@ -158,11 +159,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	}
 	
 	public static void pushFieldSetter(ClassVisitor cw, int modifiers, String name,
-			FieldContext ctx, boolean objReturn)
+			FieldContext ctx, boolean objArgument)
 	{
 		pushFieldSetter(cw, modifiers, name,
 				ctx.getDeclaringClassInternalName(), ctx.getFieldName(), ctx.getDescriptor(),
-				FieldType.fromModifier(ctx.getModifier()), objReturn);
+				FieldType.fromModifier(ctx.getModifier()), objArgument);
 	}
 	
 	public static void pushFieldSetter(ClassVisitor cw, int modifiers, String name,
@@ -1059,6 +1060,15 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		final boolean getFlag()
 		{
 			return flag;
+		}
+		
+		public static CallingType fromMethod(Method method)
+		{
+			if(method.getDeclaringClass().isInterface())
+				return INTERFACE;
+			if(Modifier.isStatic(method.getModifiers()))
+				return STATIC;
+			return VIRTUAL;
 		}
 		
 		private final boolean flag;

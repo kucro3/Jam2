@@ -1,12 +1,56 @@
 package org.kucro3.jam2.invoke;
 
-public abstract class FieldInvoker {
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+
+import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaGet;
+import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaSet;
+import org.kucro3.jam2.util.ClassContext;
+import org.kucro3.jam2.util.FieldContext;
+import org.kucro3.jam2.util.Jam2Util;
+import org.objectweb.asm.Opcodes;
+
+public abstract class FieldInvoker implements Opcodes {
 	protected FieldInvoker(Class<?> declaringClass, int modifier, String name, Class<?> type)
 	{
 		this.declaringClass = declaringClass;
 		this.modifier = modifier;
 		this.name = name;
 		this.type = type;
+	}
+	
+	public static FieldInvoker newInvoker(Field field)
+	{
+		if(!Modifier.isPublic(field.getModifiers()))
+			throw new IllegalArgumentException("field unaccessable");
+		
+		FieldContext fctx = FieldContext.newContext(field);
+		
+		LambdaGet get;
+		LambdaSet set;
+		
+		ClassContext getter = new ClassContext(V1_8, ACC_PUBLIC, 
+				"org/kucro3/jam2/invoke/FieldGetter$" + Jam2Util.generateUUIDForClassName(),
+				null, "java/lang/Object", new String[] {"org/kucro3/jam2/invoke/FieldInvokerLambdaImpl$LambdaGet"});
+		Jam2Util.pushFieldGetter(getter, ACC_PUBLIC, "get", fctx, true, true);
+		Jam2Util.pushEmptyConstructor(getter, ACC_PUBLIC, Object.class);
+		
+		ClassContext setter = new ClassContext(V1_8, ACC_PUBLIC, 
+				"org/kucro3/jam2/invoke/FieldSetter$" + Jam2Util.generateUUIDForClassName(),
+				null, "java/lang/Object", new String[] {"org/kucro3/jam2/invoke/FieldInvokerLambdaImpl$LambdaSet"});
+		Jam2Util.pushFieldSetter(setter, ACC_PUBLIC, "set", fctx, true);
+		Jam2Util.pushEmptyConstructor(setter, ACC_PUBLIC, Object.class);
+		
+		try {
+			get = (LambdaGet) getter.newClass().newInstance();
+			set = (LambdaSet) setter.newClass().newInstance();
+		} catch (Exception e) {
+			// unused
+			throw new IllegalStateException(e);
+		}
+		
+		return new FieldInvokerLambdaImpl(field.getDeclaringClass(), field.getModifiers(),
+				field.getName(), field.getType(), get, set);
 	}
 	
 	public Class<?> getDeclaringClass()

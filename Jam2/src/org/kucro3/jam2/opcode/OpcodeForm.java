@@ -1,4 +1,4 @@
-package org.kucro3.jam2.asm;
+package org.kucro3.jam2.opcode;
 
 public enum OpcodeForm {
 	VOID,

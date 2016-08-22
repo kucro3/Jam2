@@ -1,6 +1,6 @@
-package org.kucro3.jam2.asm;
+package org.kucro3.jam2.opcode;
 
-import static org.kucro3.jam2.asm.OpcodeForm.*;
+import static org.kucro3.jam2.opcode.OpcodeForm.*;
 
 import java.util.HashMap;
 import java.util.Map;
