@@ -61,6 +61,11 @@ public class Opcode {
 		return base;
 	}
 	
+	public static Opcode get(int insn)
+	{
+		return OPCODES[insn];
+	}
+	
 	private final int base;
 	
 	private final int root;

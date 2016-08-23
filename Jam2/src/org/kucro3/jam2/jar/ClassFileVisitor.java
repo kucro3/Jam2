@@ -1,7 +1,9 @@
 package org.kucro3.jam2.jar;
 
+import org.kucro3.jam2.opcode.InstructionContainer;
 import org.kucro3.jam2.util.ClassContext;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 class ClassFileVisitor extends ClassVisitor {
@@ -34,7 +36,17 @@ class ClassFileVisitor extends ClassVisitor {
 	{
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 		ClassMethod cm = new ClassMethod(access, name, desc, signature, exceptions);
-		return new ClassMethodVisitor(cm, mv);
+		owner.methods.put(name + desc, cm);
+		return new ClassMethodVisitor(cm, mv, owner.isInstructionCached() ? new InstructionContainer(mv) : null);
+	}
+	
+	@Override
+	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value)
+	{
+		FieldVisitor fv = super.visitField(access, name, desc, signature, value);
+		ClassField cf = new ClassField(access, name, desc, signature, value);
+		owner.fields.put(name, cf);
+		return new ClassFieldVisitor(cf, fv);
 	}
 	
 	final ClassFile owner;

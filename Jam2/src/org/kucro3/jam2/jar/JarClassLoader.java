@@ -1,74 +1,72 @@
 package org.kucro3.jam2.jar;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ListIterator;
 
-public class JarClassLoader extends ClassLoader {
-	public JarClassLoader()
+public class JarClassLoader extends URLClassLoader {
+	public JarClassLoader(File file) throws MalformedURLException
 	{
+		super(new URL[] {file.toURI().toURL()});
 	}
 	
-	public JarClassLoader(ClassLoader cl)
+	public JarClassLoader(File file, ClassLoader cl) throws MalformedURLException
 	{
-		super(cl);
+		super(new URL[] {file.toURI().toURL()}, cl);
 	}
 	
-	Class<?> tryLoadClass(ZipInputStream zis, ZipEntry entry) throws IOException
+	static byte[] getBytes(URL url)
 	{
-		return tryLoadClass(zis, entry, null);
-	}
-	
-	Class<?> tryLoadClass(ZipInputStream zis, ZipEntry entry, ByteArrayCallback callback) throws IOException
-	{
-		if(zis.available() == 0)
-			return UNAVAILABLE;
+		if(url == null)
+			throw new IllegalStateException("Null url");
 		
-		String className = entry.getName();
-		if(className.endsWith(".class"))
-			className = className.replace(".class", "");
-		else
+		try {
+			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+			InputStream is = url.openStream();
+			
+			int byt;
+			while((byt = is.read()) != -1)
+				buffer.write(byt);
+			
+			is.close();
+			return buffer.toByteArray();
+		} catch (IOException e) {
+			// unused
+			throw new IllegalStateException(e);
+		}
+	}
+	
+	Class<?> nextClass(ListIterator<String> classes, ByteArrayCallback callback) throws IOException
+	{
+		if(!classes.hasNext())
 			return null;
 		
-		int length;
-		byte[] byts = new byte[2048];
-		ByteArrayOutputStream buf = new ByteArrayOutputStream();
+		String location = classes.next();
+		String className = location.replace(".class", "").replace('/', '.');
+		Class<?> result;
 		
-		DataInputStream dis = new DataInputStream(zis);
-		DataOutputStream dos = new DataOutputStream(buf);
+		try {
+			result = super.loadClass(className);
+		} catch (ClassNotFoundException e) {
+			// unused
+			throw new IllegalStateException(e);
+		}
 		
-		int magicValue = dis.readInt();
-		if(!checkMagicValue(magicValue))
-			return null;
-		dos.writeInt(magicValue);
-		
-		while((length = zis.read(byts)) > 0)
-			buf.write(byts, 9, length);
-		
-		byts = buf.toByteArray();
 		if(callback != null)
-			callback.callback(byts);
-		return super.defineClass(className, byts, 0, byts.length);
-	}
-	
-	static boolean checkMagicValue(int value)
-	{
-		return value == MAGIC_VALUE;
+			callback.callback(getBytes(super.getResource(location)));
+		
+		return result;
 	}
 	
 	static interface ByteArrayCallback
 	{
 		void callback(byte[] byts);
 	}
-	
-	public static interface Unavailable
-	{
-	}
-	
-	static final Class<?> UNAVAILABLE = Unavailable.class;
 	
 	public static final int MAGIC_VALUE = 0xCAFEBABE;
 }

@@ -839,6 +839,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return _toDescriptors(classes);
 	}
 	
+	public static String toDescriptor(String name, Class<?> returnType, Class<?>[] arguments)
+	{
+		return name + _toDescriptor(returnType, arguments);
+	}
+	
 	static String[] _toInternalNames(Class<?>[] classes)
 	{
 		if(classes == null)

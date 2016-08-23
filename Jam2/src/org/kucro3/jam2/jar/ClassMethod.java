@@ -1,5 +1,7 @@
 package org.kucro3.jam2.jar;
 
+import org.kucro3.jam2.opcode.Instruction;
+
 public class ClassMethod {
 	ClassMethod(int access, String name, String descriptor, String signature, String[] exceptions)
 	{
@@ -35,6 +37,11 @@ public class ClassMethod {
 		return exceptions;
 	}
 	
+	public Instruction[] getInstructions()
+	{
+		return insns;
+	}
+	
 	private final int access;
 	
 	private final String name;
@@ -46,4 +53,5 @@ public class ClassMethod {
 	private final String[] exceptions;
 	
 	// initialized by CMV
+	Instruction[] insns;
 }

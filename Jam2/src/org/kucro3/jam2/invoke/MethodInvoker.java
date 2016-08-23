@@ -34,6 +34,16 @@ public abstract class MethodInvoker implements Opcodes {
 		return sb.toString();
 	}
 	
+	public static void main(String[] args) throws Exception
+	{
+		Method mthd = Object.class.getMethod("equals", Object.class);
+		newInvoker(mthd);
+		long a = System.currentTimeMillis();
+		for(int i = 0; i < 100; i++)
+			newInvoker(mthd);
+		System.out.println((System.currentTimeMillis() - a) + "ms");
+	}
+	
 	public static MethodInvoker newInvoker(Method method)
 	{
 		if(!Modifier.isPublic(method.getModifiers()))

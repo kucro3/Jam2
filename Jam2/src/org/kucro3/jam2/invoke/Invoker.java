@@ -268,6 +268,8 @@ public class Invoker implements Opcodes {
 		return new StringBuilder()
 				.append("Initializer_")
 				.append(invoker.owner.getCanonicalName().replace(".", "_"))
+				.append("$")
+				.append(Jam2Util.generateUUIDForClassName())
 				.toString();
 	}
 	

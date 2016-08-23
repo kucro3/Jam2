@@ -13,51 +13,54 @@ public class JarFile {
 		this(file, false);
 	}
 	
-	public JarFile(InputStream is) throws IOException
-	{
-		this(is, false);
-	}
-	
 	public JarFile(File file, boolean cached) throws IOException
 	{
-		this(new FileInputStream(file), cached);
-	}
-	
-	public JarFile(InputStream is, boolean cached) throws IOException
-	{
-		if(is == null)
-			throw new NullPointerException("null in InputStream");
-		this.zis = new ZipInputStream(is);
-		this.loader = new JarClassLoader(this.getClass().getClassLoader());
+		if(file == null)
+			throw new NullPointerException("null in File");
+		this.zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(file)));
+		this.loader = new JarClassLoader(file, this.getClass().getClassLoader());
 		this.cached = cached;
+		this.classes = new HashMap<>();
 		this.loadAll();
+		this.loader.close();
 	}
 	
 	private void loadAll() throws IOException
 	{
+		List<String> entries = new ArrayList<>();
+		ZipEntry zEntry;
+		
+		String temp;
+		while((zEntry = zis.getNextEntry()) != null)
+			if((temp = zEntry.getName()).endsWith(".class"))
+				entries.add(temp);
+			else
+				continue;
+		
+		if(entries.isEmpty())
+			return;
+		
+		ListIterator<String> iter = entries.listIterator();
+		
 		ClassFile cf;
-		while((cf = nextClass()) != null)
+		while((cf = nextClass(iter)) != null)
 			classes.put(cf.getLoadedClass().getCanonicalName(), cf);
 	}
 	
-	private ClassFile nextClass() throws IOException
+	private ClassFile nextClass(ListIterator<String> iter) throws IOException
 	{
 		ClassReader cr;
 		ByteArrayCallback callback = null;
 		
 		if(isCached())
 			callback = (byts) -> {this.tempCr = new ClassReader(byts);};
+		
+		Class<?> next = this.loader.nextClass(iter, callback);
+		if(next == null)
+			return null;
+		
 		cr = this.tempCr;
 		this.tempCr = null;
-		
-		ZipEntry nextEntry;
-		if((nextEntry = zis.getNextEntry()) == null)
-			return null;
-		
-		Class<?> next;
-		while((next = loader.tryLoadClass(zis, nextEntry, callback)) == null);
-		if(next == JarClassLoader.UNAVAILABLE)
-			return null;
 		
 		return new ClassFile(this, next, cr, cached);
 	}
@@ -99,7 +102,7 @@ public class JarFile {
 	
 	final JarClassLoader loader;
 	
-	private final Map<String, ClassFile> classes = new HashMap<>();
+	private final Map<String, ClassFile> classes;
 	
 	private final boolean cached;
 	

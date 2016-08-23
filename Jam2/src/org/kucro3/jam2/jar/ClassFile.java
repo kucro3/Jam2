@@ -1,8 +1,10 @@
 package org.kucro3.jam2.jar;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.kucro3.jam2.util.Jam2Util;
 import org.objectweb.asm.ClassReader;
 
 public class ClassFile {
@@ -12,6 +14,7 @@ public class ClassFile {
 		this.loadedClass = loadedClass;
 		this.cr = reader;
 		this.cached = cached;
+		
 		if(cached)
 			this.cfv = new ClassFileVisitor(this);
 		else
@@ -31,9 +34,49 @@ public class ClassFile {
 		return loadedClass;
 	}
 	
-	public boolean isCached()
+	public boolean isInstructionCached()
 	{
 		return cached;
+	}
+	
+	public String getSource()
+	{
+		return source;
+	}
+	
+	public String getDebug()
+	{
+		return debug;
+	}
+	
+	public Collection<ClassField> getFields()
+	{
+		return fields.values();
+	}
+	
+	public Collection<ClassMethod> getMethods()
+	{
+		return methods.values();
+	}
+	
+	public boolean containsField(String name)
+	{
+		return fields.containsKey(name);
+	}
+	
+	public ClassField getField(String name)
+	{
+		return fields.get(name);
+	}
+	
+	public boolean containsMethod(String name)
+	{
+		return methods.containsKey(name);
+	}
+	
+	public ClassMethod getMethod(String name, Class<?> returnType, Class<?>... arguments)
+	{
+		return methods.get(Jam2Util.toDescriptor(name, returnType, arguments));
 	}
 	
 	private final JarFile owner;
@@ -44,7 +87,7 @@ public class ClassFile {
 	
 	private final boolean cached;
 	
-	private final ClassFileVisitor cfv;
+	final ClassFileVisitor cfv;
 	
 	// initialized by CFV
 	

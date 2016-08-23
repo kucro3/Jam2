@@ -21,6 +21,11 @@ public abstract class Instruction {
 		return opcode;
 	}
 	
+	public String toString()
+	{
+		return opcode.getName();
+	}
+	
 	private final InstructionContainer container;
 	
 	private final Opcode opcode;
@@ -38,6 +43,11 @@ public abstract class Instruction {
 			return operand;
 		}
 		
+		public String toString()
+		{
+			return super.toString() + " " + operand;
+		}
+		
 		private final int operand;
 	}
 	
@@ -52,6 +62,11 @@ public abstract class Instruction {
 		public int getVar()
 		{
 			return var;
+		}
+		
+		public String toString()
+		{
+			return super.toString() + " " + var;
 		}
 
 		private final int var;
@@ -68,6 +83,11 @@ public abstract class Instruction {
 		public String getDescriptor()
 		{
 			return descriptor;
+		}
+		
+		public String toString()
+		{
+			return super.toString() + " " + descriptor;
 		}
 		
 		private final String descriptor;
@@ -103,16 +123,32 @@ public abstract class Instruction {
 		private final String name;
 		
 		private final String descriptor;
+		
+		public String toString()
+		{
+			return super.toString() + " " + owner + "#" + name + ":" + descriptor;
+		}
 	}
 	
 	public static class InstructionMethod extends Instruction
 	{
-		InstructionMethod(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor)
+		InstructionMethod(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor, boolean ifInterface)
 		{
 			super(container, opcode);
 			this.owner = owner;
 			this.name = name;
 			this.descriptor = descriptor;
+			this.ifInterface = ifInterface;
+		}
+		
+		InstructionMethod(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor)
+		{
+			this(container, opcode, owner, name, descriptor, false);
+		}
+		
+		public boolean isInterface()
+		{
+			return ifInterface;
 		}
 		
 		public String getOwner()
@@ -129,6 +165,13 @@ public abstract class Instruction {
 		{
 			return descriptor;
 		}
+		
+		public String toString()
+		{
+			return super.toString() + " " + owner + "#" + name + ":" + descriptor;
+		}
+		
+		private final boolean ifInterface;
 		
 		private final String owner;
 		
@@ -169,6 +212,11 @@ public abstract class Instruction {
 			return bootstrapArguments;
 		}
 		
+		public String toString()
+		{
+			return super.toString() + " " + name + ":" + descriptor + "(" + bootstrapMethod + ":" + bootstrapArguments.length + ")";
+		}
+		
 		private final String name;
 		
 		private final String descriptor;
@@ -191,6 +239,11 @@ public abstract class Instruction {
 			return label;
 		}
 		
+		public String toString()
+		{
+			return super.toString() + " " + label;
+		}
+		
 		private final Label label;
 	}
 	
@@ -205,6 +258,11 @@ public abstract class Instruction {
 		public Object getConstant()
 		{
 			return constant;
+		}
+		
+		public String toString()
+		{
+			return super.toString() + " " + constant;
 		}
 		
 		private final Object constant;
@@ -227,6 +285,11 @@ public abstract class Instruction {
 		public int getIncrement()
 		{
 			return increment;
+		}
+		
+		public String toString()
+		{
+			return super.toString() + " " + var + " " + increment;
 		}
 		
 		private final int var;
@@ -264,6 +327,11 @@ public abstract class Instruction {
 		public Label[] getLabels()
 		{
 			return labels;
+		}
+		
+		public String toString()
+		{
+			return super.toString() + " [" + min + ", " + max + "]";
 		}
 		
 		private final int min;
@@ -326,8 +394,21 @@ public abstract class Instruction {
 			return dimension;
 		}
 		
+		public String toString()
+		{
+			return super.toString() + " " + descriptor + ":" + dimension;
+		}
+		
 		private final String descriptor;
 		
 		private final int dimension;
+	}
+	
+	public static class InstructionVoid extends Instruction
+	{
+		InstructionVoid(InstructionContainer container, Opcode opcode) 
+		{
+			super(container, opcode);
+		}
 	}
 }
