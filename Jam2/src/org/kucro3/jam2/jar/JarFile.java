@@ -1,13 +1,21 @@
 package org.kucro3.jam2.jar;
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
+import java.util.jar.Manifest;
 import java.util.zip.*;
 
 import org.kucro3.jam2.jar.JarClassLoader.ByteArrayCallback;
 import org.objectweb.asm.ClassReader;
 
-public class JarFile {
+public class JarFile implements Jar {
+	public static void main(String[] args) throws Exception
+	{
+		JarFile jf = new JarFile(new File("G:\\jars\\ScptLine.jar"));
+		JarPacker.packTo(jf, new File("G:\\jars\\ScptLine.clone.jar"));
+	}
+	
 	public JarFile(File file) throws IOException
 	{
 		this(file, false);
@@ -19,10 +27,23 @@ public class JarFile {
 			throw new NullPointerException("null in File");
 		this.zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(file)));
 		this.loader = new JarClassLoader(file, this.getClass().getClassLoader());
+		this.resources = new ArrayList<>();
+		this.notClass = new ArrayList<>();
 		this.cached = cached;
 		this.classes = new HashMap<>();
+		this.manifest = new Manifest();
+		this.manifest.clear();
 		this.loadAll();
-		this.loader.close();
+	}
+	
+	@Override
+	protected void finalize()
+	{
+		try {
+			this.loader.close();
+		} catch (IOException e) {
+			// ignored
+		}
 	}
 	
 	private void loadAll() throws IOException
@@ -32,10 +53,13 @@ public class JarFile {
 		
 		String temp;
 		while((zEntry = zis.getNextEntry()) != null)
-			if((temp = zEntry.getName()).endsWith(".class"))
+		{
+			resources.add(zEntry.getName());
+			if(isClass(temp = zEntry.getName()))
 				entries.add(temp);
 			else
-				continue;
+				notClass.add(zEntry.getName());
+		}
 		
 		if(entries.isEmpty())
 			return;
@@ -45,31 +69,41 @@ public class JarFile {
 		ClassFile cf;
 		while((cf = nextClass(iter)) != null)
 			classes.put(cf.getLoadedClass().getCanonicalName(), cf);
+		
+		InputStream mis = loader.getResourceAsStream("META-INF/MANIFEST.MF");
+		if(mis != null)
+			this.manifest.read(mis);
 	}
 	
 	private ClassFile nextClass(ListIterator<String> iter) throws IOException
 	{
+		if(!iter.hasNext())
+			return null;
+		
 		ClassReader cr;
 		ByteArrayCallback callback = null;
 		
 		if(isCached())
 			callback = (byts) -> {this.tempCr = new ClassReader(byts);};
 		
-		Class<?> next = this.loader.nextClass(iter, callback);
+		String location = iter.next();
+		Class<?> next = this.loader.nextClass(location, callback);
 		if(next == null)
 			return null;
 		
 		cr = this.tempCr;
 		this.tempCr = null;
 		
-		return new ClassFile(this, next, cr, cached);
+		return new ClassFile(this, next, cr, location, cached);
 	}
 	
+	@Override
 	public Collection<ClassFile> getClasses()
 	{
 		return Collections.unmodifiableCollection(classes.values());
 	}
 	
+	@Override
 	public ClassFile forName(String name) throws ClassNotFoundException
 	{
 		ClassFile cf;
@@ -78,6 +112,7 @@ public class JarFile {
 		return cf;
 	}
 	
+	@Override
 	public ClassFile getClass(String name)
 	{
 		return classes.get(name);
@@ -88,6 +123,7 @@ public class JarFile {
 		return classes.containsKey(name);
 	}
 	
+	@Override
 	public ClassLoader getClassLoader()
 	{
 		return loader;
@@ -98,9 +134,71 @@ public class JarFile {
 		return cached;
 	}
 	
+	@Override
+	public URL getResource(String name)
+	{
+		return loader.getResource(name);
+	}
+	
+	@Override
+	public InputStream getResourceAsStream(String name)
+	{
+		return loader.getResourceAsStream(name);
+	}
+	
+	@Override
+	public Collection<String> getResources()
+	{
+		return Collections.unmodifiableList(resources);
+	}
+	
+	@Override
+	public Manifest getManifest()
+	{
+		return manifest;
+	}
+	
+	@Override
+	public boolean removeResource(String name)
+	{
+		boolean r = resources.remove(name);
+		if(r)
+			if(isClass(name))
+				removeClass(toClassName(name));
+		return r;
+	}
+	
+	@Override
+	public boolean removeClass(String name)
+	{
+		return classes.remove(name) != null;
+	}
+	
+	@Override
+	public Collection<String> getResourcesExpectClasses()
+	{
+		return Collections.unmodifiableList(notClass);
+	}
+	
+	static boolean isClass(String res)
+	{
+		return res.endsWith(".class");
+	}
+	
+	static String toClassName(String res)
+	{
+		return res.replace(".class", "").replace('/', '.');
+	}
+	
+	final Manifest manifest;
+	
 	ClassReader tempCr;
 	
 	final JarClassLoader loader;
+	
+	final List<String> notClass;
+	
+	final List<String> resources;
 	
 	private final Map<String, ClassFile> classes;
 	

@@ -21,6 +21,7 @@ public class ClassMethodVisitor extends MethodVisitor {
 	public void visitEnd()
 	{
 		this.owner.insns = container.toInstructions();
+		super.visitEnd();
 	}
 	
 	private final InstructionContainer container;

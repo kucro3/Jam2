@@ -8,12 +8,13 @@ import org.kucro3.jam2.util.Jam2Util;
 import org.objectweb.asm.ClassReader;
 
 public class ClassFile {
-	ClassFile(JarFile owner, Class<?> loadedClass, ClassReader reader, boolean cached)
+	ClassFile(JarFile owner, Class<?> loadedClass, ClassReader reader, String location, boolean cached)
 	{
 		this.owner = owner;
 		this.loadedClass = loadedClass;
 		this.cr = reader;
 		this.cached = cached;
+		this.location = location;
 		
 		if(cached)
 			this.cfv = new ClassFileVisitor(this);
@@ -78,6 +79,13 @@ public class ClassFile {
 	{
 		return methods.get(Jam2Util.toDescriptor(name, returnType, arguments));
 	}
+	
+	String getLocation()
+	{
+		return location;
+	}
+	
+	private final String location;
 	
 	private final JarFile owner;
 	

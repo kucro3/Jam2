@@ -3,12 +3,16 @@ package org.kucro3.jam2.opcode;
 import org.kucro3.jam2.opcode.Opcode;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 public abstract class Instruction {
 	Instruction(InstructionContainer container, Opcode opcode)
 	{
 		this.container = container;
 		this.opcode = opcode;
+		
+		if(opcode.getForm() == OpcodeForm.VAR_CST)
+			throw new IllegalArgumentException("Opcode \"" + opcode.getName() + "\" is not supported in ASM");
 	}
 	
 	public InstructionContainer getContainer()
@@ -21,10 +25,13 @@ public abstract class Instruction {
 		return opcode;
 	}
 	
+	@Override
 	public String toString()
 	{
 		return opcode.getName();
 	}
+	
+	public abstract void visit(MethodVisitor mv);
 	
 	private final InstructionContainer container;
 	
@@ -43,9 +50,16 @@ public abstract class Instruction {
 			return operand;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return super.toString() + " " + operand;
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitIntInsn(super.opcode.getCode(), operand);
 		}
 		
 		private final int operand;
@@ -64,9 +78,16 @@ public abstract class Instruction {
 			return var;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return super.toString() + " " + var;
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitVarInsn(super.opcode.getCode(), var);
 		}
 
 		private final int var;
@@ -74,23 +95,30 @@ public abstract class Instruction {
 	
 	public static class InstructionType extends Instruction
 	{
-		InstructionType(InstructionContainer container, Opcode opcode, String descriptor) 
+		InstructionType(InstructionContainer container, Opcode opcode, String type) 
 		{
 			super(container, opcode);
-			this.descriptor = descriptor;
+			this.type = type;
 		}
 		
-		public String getDescriptor()
+		public String getType()
 		{
-			return descriptor;
+			return type;
 		}
 		
+		@Override
 		public String toString()
 		{
-			return super.toString() + " " + descriptor;
+			return super.toString() + " " + type;
 		}
 		
-		private final String descriptor;
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitTypeInsn(super.opcode.getCode(), type);
+		}
+		
+		private final String type;
 	}
 	
 	public static class InstructionField extends Instruction
@@ -118,16 +146,23 @@ public abstract class Instruction {
 			return descriptor;
 		}
 		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitFieldInsn(super.opcode.getCode(), owner, name, descriptor);
+		}
+		
+		@Override
+		public String toString()
+		{
+			return super.toString() + " " + owner + "#" + name + ":" + descriptor;
+		}
+		
 		private final String owner;
 		
 		private final String name;
 		
 		private final String descriptor;
-		
-		public String toString()
-		{
-			return super.toString() + " " + owner + "#" + name + ":" + descriptor;
-		}
 	}
 	
 	public static class InstructionMethod extends Instruction
@@ -166,9 +201,16 @@ public abstract class Instruction {
 			return descriptor;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return super.toString() + " " + owner + "#" + name + ":" + descriptor;
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitMethodInsn(super.opcode.getCode(), owner, name, descriptor, ifInterface);
 		}
 		
 		private final boolean ifInterface;
@@ -212,9 +254,16 @@ public abstract class Instruction {
 			return bootstrapArguments;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return super.toString() + " " + name + ":" + descriptor + "(" + bootstrapMethod + ":" + bootstrapArguments.length + ")";
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitInvokeDynamicInsn(name, descriptor, bootstrapMethod, bootstrapArguments);
 		}
 		
 		private final String name;
@@ -239,9 +288,16 @@ public abstract class Instruction {
 			return label;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return super.toString() + " " + label;
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitJumpInsn(super.opcode.getCode(), label);
 		}
 		
 		private final Label label;
@@ -260,9 +316,16 @@ public abstract class Instruction {
 			return constant;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return super.toString() + " " + constant;
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitLdcInsn(constant);
 		}
 		
 		private final Object constant;
@@ -287,9 +350,16 @@ public abstract class Instruction {
 			return increment;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return super.toString() + " " + var + " " + increment;
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitIincInsn(var, increment);
 		}
 		
 		private final int var;
@@ -329,9 +399,16 @@ public abstract class Instruction {
 			return labels;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return super.toString() + " [" + min + ", " + max + "]";
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitTableSwitchInsn(min, max, labelDefault, labels);
 		}
 		
 		private final int min;
@@ -368,6 +445,12 @@ public abstract class Instruction {
 			return labels;
 		}
 		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitLookupSwitchInsn(labelDefault, keys, labels);
+		}
+		
 		private final Label labelDefault;
 		
 		private final int[] keys;
@@ -399,6 +482,12 @@ public abstract class Instruction {
 			return super.toString() + " " + descriptor + ":" + dimension;
 		}
 		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitMultiANewArrayInsn(descriptor, dimension);
+		}
+		
 		private final String descriptor;
 		
 		private final int dimension;
@@ -409,6 +498,12 @@ public abstract class Instruction {
 		InstructionVoid(InstructionContainer container, Opcode opcode) 
 		{
 			super(container, opcode);
+		}
+		
+		@Override
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitInsn(super.opcode.getCode());
 		}
 	}
 }

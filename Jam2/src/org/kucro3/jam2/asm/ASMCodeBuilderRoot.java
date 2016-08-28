@@ -1,10 +1,15 @@
 package org.kucro3.jam2.asm;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.kucro3.jam2.util.ClassContext;
+import org.kucro3.jam2.util.builder.AnnotationBuilder.LocalVariableAnnotationBuilder;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisitor implements Opcodes {
@@ -895,10 +900,20 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return (T) this;
 	}
 	
+	public T if_icmpeq(String l)
+	{
+		return if_icmpeq(label(l));
+	}
+	
 	public T if_icmpeq(Label l)
 	{
 		super.visitJumpInsn(IF_ICMPEQ, l);
 		return (T) this;
+	}
+	
+	public T if_icmpne(String l)
+	{
+		return if_icmpne(label(l));
 	}
 	
 	public T if_icmpne(Label l)
@@ -907,10 +922,20 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return (T) this;
 	}
 	
+	public T if_icmplt(String l)
+	{
+		return if_icmplt(label(l));
+	}
+	
 	public T if_icmplt(Label l)
 	{
 		super.visitJumpInsn(IF_ICMPLT, l);
 		return (T) this;
+	}
+	
+	public T if_icmpge(String l)
+	{
+		return if_icmpge(label(l));
 	}
 	
 	public T if_icmpge(Label l)
@@ -919,10 +944,20 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return (T) this;
 	}
 	
+	public T if_icmpgt(String l)
+	{
+		return if_icmpge(label(l));
+	}
+	
 	public T if_icmpgt(Label l)
 	{
 		super.visitJumpInsn(IF_ICMPGT, l);
 		return (T) this;
+	}
+	
+	public T if_icmple(String l)
+	{
+		return if_icmple(label(l));
 	}
 	
 	public T if_icmple(Label l)
@@ -931,10 +966,20 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return (T) this;
 	}
 	
+	public T if_acmpeq(String l)
+	{
+		return if_acmpeq(label(l));
+	}
+	
 	public T if_acmpeq(Label l)
 	{
 		super.visitJumpInsn(IF_ACMPEQ, l);
 		return (T) this;
+	}
+	
+	public T if_acmpne(String l)
+	{
+		return if_acmpne(label(l));
 	}
 	
 	public T if_acmpne(Label l)
@@ -943,10 +988,20 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return (T) this;
 	}
 	
+	public T goTo(String l)
+	{
+		return goTo(label(l));
+	}
+	
 	public T goTo(Label l)
 	{
 		super.visitJumpInsn(GOTO, l);
 		return (T) this;
+	}
+	
+	public T jsr(String l)
+	{
+		return jsr(label(l));
 	}
 	
 	public T jsr(Label l)
@@ -961,10 +1016,20 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return (T) this;
 	}
 	
+	public T tableswitch(int min, int max, String dflt, String[] labels)
+	{
+		return tableswitch(min, max, label(dflt), labels(labels));
+	}
+	
 	public T tableswitch(int min, int max, Label dflt, Label[] labels)
 	{
 		super.visitTableSwitchInsn(min, max, dflt, labels);
 		return (T) this;
+	}
+	
+	public T lookupswitch(String dflt, int[] keys, String[] labels)
+	{
+		return lookupswitch(label(dflt), keys, labels(labels));
 	}
 	
 	public T lookupswitch(Label dflt, int[] keys, Label[] labels)
@@ -1123,10 +1188,20 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return (T) this;
 	}
 	
+	public T ifnull(String l)
+	{
+		return ifnull(label(l));
+	}
+	
 	public T ifnull(Label l)
 	{
 		super.visitJumpInsn(IFNULL, l);
 		return (T) this;
+	}
+	
+	public T ifnonnull(String l)
+	{
+		return ifnonnull(label(l));
 	}
 	
 	public T ifnonnull(Label l)
@@ -1140,10 +1215,82 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 		return mv;
 	}
 	
+	public T frame(int type, int nLocal, Object[] local, int nStack, Object[] stack)
+	{
+		mv.visitFrame(type, nLocal, local, nStack, stack);
+		return (T) this;
+	}
+	
+	public T localVariable(String name, String desc, String signature, String lstart, String lend, int index)
+	{
+		return localVariable(name, desc, signature, label(lstart), label(lend), index);
+	}
+	
+	public T localVariable(String name, String desc, String signature, Label start, Label end, int index)
+	{
+		mv.visitLocalVariable(name, desc, signature, start, end, index);
+		return (T) this;
+	}
+	
+	public LocalVariableAnnotationBuilder<T>
+		localVariableAnnotation(int typeRef, TypePath typePath, String[] start, String[] end, int[] index, String desc, boolean visible)
+	{
+		return localVariableAnnotation(typeRef, typePath, labels(start), labels(end), index, desc, visible);
+	}
+	
+	public LocalVariableAnnotationBuilder<T>
+		localVariableAnnotation(int typeRef, TypePath typePath, Label[] start, Label[] end, int[] index, String desc, boolean visible)
+	{
+		return new LocalVariableAnnotationBuilder<T>
+				(mv.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, desc, visible), (T) this);
+	}
+	
+	public T lineNumber(int line, String start)
+	{
+		return lineNumber(line, label(start));
+	}
+	
+	public T lineNumber(int line, Label start)
+	{
+		mv.visitLineNumber(line, start);
+		return (T) this;
+	}
+	
+	public final T maxs(int maxStacks, int maxLocals)
+	{
+		mv.visitMaxs(maxStacks, maxLocals);
+		return (T) this;
+	}
+	
+	public final T end(boolean computeMaxs)
+	{
+		if(computeMaxs)
+			mv.visitMaxs(0, 0);
+		
+		return end();
+	}
+	
 	public final T end()
 	{
-		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 		return (T) this;
 	}
+	
+	protected final Label label(String name)
+	{
+		Label r;
+		if((r = labels.get(name)) == null)
+			labels.put(name, r = new Label());
+		return r;
+	}
+	
+	protected final Label[] labels(String[] names)
+	{
+		Label[] labels = new Label[names.length];
+		for(int i = 0; i < labels.length; i++)
+			labels[i] = label(names[i]);
+		return labels;
+	}
+	
+	protected final Map<String, Label> labels = new HashMap<>();
 }

@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ListIterator;
 
 public class JarClassLoader extends URLClassLoader {
 	public JarClassLoader(File file) throws MalformedURLException
@@ -41,13 +40,9 @@ public class JarClassLoader extends URLClassLoader {
 		}
 	}
 	
-	Class<?> nextClass(ListIterator<String> classes, ByteArrayCallback callback) throws IOException
+	Class<?> nextClass(String location, ByteArrayCallback callback) throws IOException
 	{
-		if(!classes.hasNext())
-			return null;
-		
-		String location = classes.next();
-		String className = location.replace(".class", "").replace('/', '.');
+		String className = JarFile.toClassName(location);
 		Class<?> result;
 		
 		try {

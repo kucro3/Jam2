@@ -21,7 +21,7 @@ public class ClassContext extends ClassVisitor implements Opcodes
 	
 	public ClassContext(int api, int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
-		super(api, new ClassWriter(ClassWriter.COMPUTE_MAXS));
+		super(api, new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES));
 		this.version = version;
 		this.access = access;
 		this.internalName = name;
