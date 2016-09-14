@@ -2,9 +2,10 @@ package org.kucro3.jam2.util.builder;
 
 import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.ClassAnnotationBuilder;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
 
-public class ClassBuilder {
+public class ClassBuilder implements Opcodes {
 	public ClassBuilder(int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
 		this.cctx = new ClassContext(version, access, name, signature, superName, interfaces);

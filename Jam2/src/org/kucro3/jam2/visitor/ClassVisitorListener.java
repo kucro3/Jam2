@@ -32,6 +32,6 @@ public interface ClassVisitorListener {
 	public default boolean onVisitSource(ClassVisitor cv, String source, String debug)
 	{return true;}
 	
-	public default boolean visitTypeAnnotation(ClassVisitor cv, int typeRef, TypePath typePath, String desc, boolean visible)
+	public default boolean onVisitTypeAnnotation(ClassVisitor cv, int typeRef, TypePath typePath, String desc, boolean visible)
 	{return true;}
 }

@@ -25,6 +25,16 @@ public class InstructionContainer extends MethodVisitor implements Opcodes {
 		return insns.size();
 	}
 	
+	public int hash()
+	{
+		int result = 0;
+		
+		for(Instruction insn : insns)
+			result = result * 31 + insn.getOpcode().getCode();
+		
+		return result;
+	}
+	
 	void append(Instruction insn)
 	{
 		insns.add(insn);

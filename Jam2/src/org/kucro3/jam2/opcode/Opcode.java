@@ -43,7 +43,7 @@ public class Opcode {
 		return name;
 	}
 	
-	public int getIndex(String name)
+	public static int getIndex(String name)
 	{
 		Integer objRet = OPCODE_MAP.get(name);
 		if(objRet == null)

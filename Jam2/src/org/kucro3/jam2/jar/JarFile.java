@@ -10,18 +10,12 @@ import org.kucro3.jam2.jar.JarClassLoader.ByteArrayCallback;
 import org.objectweb.asm.ClassReader;
 
 public class JarFile implements Jar {
-	public static void main(String[] args) throws Exception
-	{
-		JarFile jf = new JarFile(new File("G:\\jars\\ScptLine.jar"));
-		JarPacker.packTo(jf, new File("G:\\jars\\ScptLine.clone.jar"));
-	}
-	
 	public JarFile(File file) throws IOException
 	{
-		this(file, false);
+		this(file, false, true);
 	}
 	
-	public JarFile(File file, boolean cached) throws IOException
+	public JarFile(File file, boolean cached, boolean loadClass) throws IOException
 	{
 		if(file == null)
 			throw new NullPointerException("null in File");
@@ -33,6 +27,7 @@ public class JarFile implements Jar {
 		this.classes = new HashMap<>();
 		this.manifest = new Manifest();
 		this.manifest.clear();
+		this.loadClass = loadClass;
 		this.loadAll();
 	}
 	
@@ -68,7 +63,7 @@ public class JarFile implements Jar {
 		
 		ClassFile cf;
 		while((cf = nextClass(iter)) != null)
-			classes.put(cf.getLoadedClass().getCanonicalName(), cf);
+			classes.put(cf.getClassName(), cf);
 		
 		InputStream mis = loader.getResourceAsStream("META-INF/MANIFEST.MF");
 		if(mis != null)
@@ -87,14 +82,16 @@ public class JarFile implements Jar {
 			callback = (byts) -> {this.tempCr = new ClassReader(byts);};
 		
 		String location = iter.next();
-		Class<?> next = this.loader.nextClass(location, callback);
+		Class<?> next = this.loader.nextClass(location, callback, loadClass);
 		if(next == null)
 			return null;
+		else if(next == JarClassLoader.CLASS_NOT_REQUIRED)
+			next = null;
 		
 		cr = this.tempCr;
 		this.tempCr = null;
 		
-		return new ClassFile(this, next, cr, location, cached);
+		return new ClassFile(this, next, cr, toClassName(location), location, cached);
 	}
 	
 	@Override
@@ -193,6 +190,8 @@ public class JarFile implements Jar {
 	final Manifest manifest;
 	
 	ClassReader tempCr;
+	
+	final boolean loadClass;
 	
 	final JarClassLoader loader;
 	

@@ -40,17 +40,20 @@ public class JarClassLoader extends URLClassLoader {
 		}
 	}
 	
-	Class<?> nextClass(String location, ByteArrayCallback callback) throws IOException
+	Class<?> nextClass(String location, ByteArrayCallback callback, boolean loadClass) throws IOException
 	{
 		String className = JarFile.toClassName(location);
 		Class<?> result;
 		
-		try {
-			result = super.loadClass(className);
-		} catch (ClassNotFoundException e) {
-			// unused
-			throw new IllegalStateException(e);
-		}
+		if(loadClass)
+			try {
+				result = super.loadClass(className);
+			} catch (ClassNotFoundException e) {
+				// unused
+				throw new IllegalStateException(e);
+			}
+		else
+			result = CLASS_NOT_REQUIRED;
 		
 		if(callback != null)
 			callback.callback(getBytes(super.getResource(location)));
@@ -64,4 +67,8 @@ public class JarClassLoader extends URLClassLoader {
 	}
 	
 	public static final int MAGIC_VALUE = 0xCAFEBABE;
+	
+	public static final Class<?> CLASS_NOT_REQUIRED = ClassNotRequired.class;
+	
+	private class ClassNotRequired {}
 }

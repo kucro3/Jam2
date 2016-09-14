@@ -14,6 +14,6 @@ public interface FieldVisitorListener {
 	public default boolean onVisitEnd(FieldVisitor fv)
 	{return true;}
 	
-	public default boolean visitTypeAnnotation(FieldVisitor fv, int typeRef, TypePath typePath, String desc, boolean visible)
+	public default boolean onVisitTypeAnnotation(FieldVisitor fv, int typeRef, TypePath typePath, String desc, boolean visible)
 	{return true;}
 }
