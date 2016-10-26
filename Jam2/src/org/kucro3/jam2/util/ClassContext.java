@@ -1,5 +1,6 @@
 package org.kucro3.jam2.util;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +17,7 @@ public class ClassContext extends ClassVisitor implements Opcodes
 {
 	public ClassContext(int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
-		this(API, version, access, name, signature, superName, interfaces);
+		this(Version.getASMVersion(), version, access, name, signature, superName, interfaces);
 	}
 	
 	public ClassContext(int api, int version, int access, String name, String signature, String superName, String[] interfaces)
@@ -133,6 +134,31 @@ public class ClassContext extends ClassVisitor implements Opcodes
 		return mappedFields.get(toFieldKey(name));
 	}
 	
+	public boolean removeConstructor(Class<?>... arguments)
+	{
+		return removeConstructor(_toDescriptors(arguments));
+	}
+	
+	public boolean removeConstructor(String... arguments)
+	{
+		return mappedMethods.remove(toConstructorKey(arguments)) != null;
+	}
+	
+	public boolean removeMethod(String name, Class<?> returnType, Class<?>... arguments)
+	{
+		return removeMethod(name, Type.getDescriptor(returnType), _toDescriptors(arguments));
+	}
+	
+	public boolean removeMethod(String name, String returnType, String... arguments)
+	{
+		return mappedMethods.remove(toMethodKey(name, returnType, arguments)) != null;
+	}
+	
+	public boolean removeField(String name)
+	{
+		return mappedFields.remove(name) != null;
+	}
+	
 	ConstructorContext getConstructor(String signature)
 	{
 		try {
@@ -140,6 +166,16 @@ public class ClassContext extends ClassVisitor implements Opcodes
 		} catch (ClassCastException e) {
 			return null;
 		}
+	}
+	
+	public Collection<MethodContext> getMethods()
+	{
+		return mappedMethods.values();
+	}
+	
+	public Collection<FieldContext> getFields()
+	{
+		return mappedFields.values();
 	}
 	
 	static void checkDuplication(Map<String, ?> map, String key, String msg)
@@ -242,6 +278,8 @@ public class ClassContext extends ClassVisitor implements Opcodes
 	@Override
 	public MethodContext visitMethod(int access, String name, String desc, String signature, String[] exceptions)
 	{
+		if(name.equals("<init>"))
+			return addConstructor(ConstructorContext.newContext(internalName, access, desc, exceptions));
 		return addMethod(MethodContext.newContext(internalName, access, name, desc, exceptions));
 	}
 	
@@ -273,13 +311,11 @@ public class ClassContext extends ClassVisitor implements Opcodes
 	
 	private final ClassVisitor superBridge = new ClassContextSuperBridge();
 	
-	public static final int API = 327680;
-	
 	class ClassContextSuperBridge extends ClassVisitor
 	{
 		ClassContextSuperBridge()
 		{
-			super(API, ClassContext.this);
+			super(Version.getASMVersion(), ClassContext.this);
 		}
 		
 		@Override

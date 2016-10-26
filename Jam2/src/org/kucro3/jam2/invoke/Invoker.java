@@ -66,25 +66,13 @@ public class Invoker implements Opcodes {
 				= initClassCtx.addMethod(ACC_PUBLIC, "initializeConstructors", void.class, new Class<?>[] {Invoker.class, Constructor[].class}, null);
 		MethodContext mInitConstructor
 				= initClassCtx.addConstructor(ACC_PUBLIC, new Class<?>[] {}, null);
-		MethodContext mInitInstance
-				= initClassCtx.addMethod(ACC_PUBLIC + ACC_STATIC, "getInstance", Initializer.class, new Class<?>[] {}, null);
-		FieldContext fInstance
-				= initClassCtx.addField(ACC_PRIVATE + ACC_STATIC, "instance", Initializer.class);
 		
 		mInitConstructor.visitCode();
 		mInitConstructor.visitVarInsn(ALOAD, 0);
-		mInitConstructor.visitInsn(DUP);
 		mInitConstructor.visitMethodInsn(INVOKESPECIAL, "org/kucro3/jam2/invoke/Initializer", "<init>", "()V", false);
-		mInitConstructor.visitFieldInsn(PUTSTATIC, initClassName, fInstance.getFieldName(), fInstance.getDescriptor());
 		mInitConstructor.visitInsn(RETURN);
 		mInitConstructor.visitMaxs(0, 0);
 		mInitConstructor.visitEnd();
-		
-		mInitInstance.visitCode();
-		mInitInstance.visitFieldInsn(GETSTATIC, initClassName, fInstance.getFieldName(), fInstance.getDescriptor());
-		mInitInstance.visitInsn(ARETURN);
-		mInitInstance.visitMaxs(0, 0);
-		mInitInstance.visitEnd();
 		
 		Field[] fields = clz.getFields();
 		mInitFields.visitCode();
@@ -196,9 +184,14 @@ public class Invoker implements Opcodes {
 		}
 	}
 	
+	public ConstructorInvoker getConstructor(Class<?>[] arguments)
+	{
+		return constructors.get(Jam2Util.toConstructorDescriptor(arguments));
+	}
+	
 	public MethodInvoker getMethod(String name, Class<?> returnType, Class<?>[] arguments)
 	{
-		return methods.get(MethodInvoker.toDescriptor(name, returnType, arguments));
+		return methods.get(Jam2Util.toDescriptor(name, returnType, arguments));
 	}
 	
 	public FieldInvoker getField(String name)
@@ -272,6 +265,8 @@ public class Invoker implements Opcodes {
 				.append(Jam2Util.generateUUIDForClassName())
 				.toString();
 	}
+	
+	public static Object RETURN_VOID = Jam2Util.RETURN_VOID;
 	
 	private final Map<String, ConstructorInvoker> constructors = new HashMap<>();
 	

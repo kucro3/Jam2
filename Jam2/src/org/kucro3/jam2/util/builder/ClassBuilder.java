@@ -6,6 +6,11 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
 
 public class ClassBuilder implements Opcodes {
+	public ClassBuilder(ClassContext cctx)
+	{
+		this.cctx = cctx;
+	}
+	
 	public ClassBuilder(int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
 		this.cctx = new ClassContext(version, access, name, signature, superName, interfaces);
@@ -61,7 +66,78 @@ public class ClassBuilder implements Opcodes {
 		return builded = cctx.newClass();
 	}
 	
+	public static Builder builder()
+	{
+		return new Builder();
+	}
+	
+	public ClassContext getContext()
+	{
+		return cctx;
+	}
+	
 	Class<?> builded;
 	
 	private final ClassContext cctx;
+	
+	public static class Builder
+	{
+		public Builder()
+		{
+			this.superName = "java/lang/Object";
+		}
+		
+		public Builder version(int version)
+		{
+			this.version = version;
+			return this;
+		}
+		
+		public Builder access(int access)
+		{
+			this.access = access;
+			return this;
+		}
+		
+		public Builder name(String name)
+		{
+			this.name = name;
+			return this;
+		}
+		
+		public Builder signature(String signature)
+		{
+			this.signature = signature;
+			return this;
+		}
+		
+		public Builder superclass(String superName)
+		{
+			this.superName = superName;
+			return this;
+		}
+		
+		public Builder interfaces(String[] interfaces)
+		{
+			this.interfaces = interfaces;
+			return this;
+		}
+		
+		public ClassBuilder build()
+		{
+			return new ClassBuilder(version, access, name, signature, superName, interfaces);
+		}
+		
+		int version;
+		
+		int access;
+		
+		String name;
+		
+		String signature;
+		
+		String superName;
+		
+		String[] interfaces;
+	}
 }

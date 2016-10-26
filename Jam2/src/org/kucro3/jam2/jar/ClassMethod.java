@@ -1,57 +1,43 @@
 package org.kucro3.jam2.jar;
 
 import org.kucro3.jam2.opcode.Instruction;
+import org.kucro3.jam2.opcode.InstructionContainer;
 
-public class ClassMethod {
-	ClassMethod(int access, String name, String descriptor, String signature, String[] exceptions)
+public interface ClassMethod {
+	int getAccess();
+	
+	String getDescriptor();
+	
+	String getReturnType();
+	
+	String[] getArguments();
+	
+	String[] getExceptions();
+	
+	@Deprecated Instruction[] getInstructions();
+	
+	InstructionContainer getInstructionContainer();
+	
+	String getName();
+	
+	String getSignature();
+	
+	default void setAccess(int access) {throw new UnsupportedOperationException();}
+	
+	default void setExceptions(String[] exceptions) {throw new UnsupportedOperationException();}
+	
+	default void setInstructionContainer(InstructionContainer container) {throw new UnsupportedOperationException();}
+	
+	default void setSignature(String signature) {throw new UnsupportedOperationException();}
+
+	public static interface Modifiable extends ClassMethod
 	{
-		this.access = access;
-		this.name = name;
-		this.descriptor = descriptor;
-		this.signature = signature;
-		this.exceptions = exceptions;
+		void setAccess(int access);
+		
+		void setExceptions(String[] exceptions);
+		
+		void setInstructionContainer(InstructionContainer container);
+		
+		void setSignature(String signature);
 	}
-	
-	public int getAccess()
-	{
-		return access;
-	}
-	
-	public String getName()
-	{
-		return name;
-	}
-	
-	public String getDescriptor()
-	{
-		return descriptor;
-	}
-	
-	public String getSignature()
-	{
-		return signature;
-	}
-	
-	public String[] getExceptions()
-	{
-		return exceptions;
-	}
-	
-	public Instruction[] getInstructions()
-	{
-		return insns;
-	}
-	
-	private final int access;
-	
-	private final String name;
-	
-	private final String descriptor;
-	
-	private final String signature;
-	
-	private final String[] exceptions;
-	
-	// initialized by CMV
-	Instruction[] insns;
 }

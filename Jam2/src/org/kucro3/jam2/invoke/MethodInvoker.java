@@ -9,7 +9,6 @@ import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.Jam2Util.CallingType;
 import org.kucro3.jam2.util.MethodContext;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 
 public abstract class MethodInvoker implements Opcodes {
 	protected MethodInvoker(Class<?> declaringClass, int modifier, String name, Class<?> returnType, Class<?>[] arguments)
@@ -19,19 +18,7 @@ public abstract class MethodInvoker implements Opcodes {
 		this.returnType = returnType;
 		this.arguments = arguments;
 		this.modifier = modifier;
-		this.descriptor = toDescriptor(name, returnType, arguments);
-	}
-	
-	static String toDescriptor(String name, Class<?> returnType, Class<?>[] arguments)
-	{
-		StringBuilder sb = new StringBuilder();
-		sb.append(name);
-		sb.append("(");
-		for(int i = 0; i < arguments.length; i++)
-			sb.append(Type.getDescriptor(arguments[i]));
-		sb.append(")");
-		sb.append(Type.getDescriptor(returnType));
-		return sb.toString();
+		this.descriptor = Jam2Util.toDescriptor(name, returnType, arguments);
 	}
 	
 	public static void main(String[] args) throws Exception

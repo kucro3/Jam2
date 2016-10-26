@@ -10,13 +10,15 @@ import org.objectweb.asm.*;
 public abstract class MethodContext extends MethodVisitor implements AccessableContext {
 	protected MethodContext()
 	{
-		super(ClassContext.API);
+		super(Version.getASMVersion());
 	}
 	
 	protected MethodContext(MethodVisitor mv)
 	{
-		super(ClassContext.API, mv);
+		super(Version.getASMVersion(), mv);
 	}
+	
+	public abstract String getMethodDescriptor();
 	
 	public abstract MethodVisitor bind(ClassVisitor ref, ClassVisitor cv);
 	

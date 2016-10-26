@@ -13,7 +13,7 @@ public abstract class FieldContext extends FieldVisitor implements AccessableCon
 	
 	protected FieldContext(FieldVisitor fv)
 	{
-		super(ClassContext.API, fv);
+		super(Version.getASMVersion(), fv);
 	}
 	
 	public abstract FieldVisitor bind(ClassVisitor ref, ClassVisitor cv);

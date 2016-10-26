@@ -39,7 +39,7 @@ public abstract class Instruction {
 	
 	public static class InstructionInt extends Instruction
 	{
-		InstructionInt(InstructionContainer container, Opcode opcode, int operand) 
+		public InstructionInt(InstructionContainer container, Opcode opcode, int operand) 
 		{
 			super(container, opcode);
 			this.operand = operand;
@@ -67,7 +67,7 @@ public abstract class Instruction {
 	
 	public static class InstructionVar extends Instruction
 	{
-		InstructionVar(InstructionContainer container, Opcode opcode, int var) 
+		public InstructionVar(InstructionContainer container, Opcode opcode, int var) 
 		{
 			super(container, opcode);
 			this.var = var;
@@ -95,7 +95,7 @@ public abstract class Instruction {
 	
 	public static class InstructionType extends Instruction
 	{
-		InstructionType(InstructionContainer container, Opcode opcode, String type) 
+		public InstructionType(InstructionContainer container, Opcode opcode, String type) 
 		{
 			super(container, opcode);
 			this.type = type;
@@ -123,7 +123,7 @@ public abstract class Instruction {
 	
 	public static class InstructionField extends Instruction
 	{
-		InstructionField(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor)
+		public InstructionField(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor)
 		{
 			super(container, opcode);
 			this.owner = owner;
@@ -167,7 +167,7 @@ public abstract class Instruction {
 	
 	public static class InstructionMethod extends Instruction
 	{
-		InstructionMethod(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor, boolean ifInterface)
+		public InstructionMethod(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor, boolean ifInterface)
 		{
 			super(container, opcode);
 			this.owner = owner;
@@ -224,7 +224,7 @@ public abstract class Instruction {
 	
 	public static class InstructionInvokeDynamic extends Instruction
 	{
-		InstructionInvokeDynamic(InstructionContainer container, Opcode opcode, String name, String descriptor,
+		public InstructionInvokeDynamic(InstructionContainer container, Opcode opcode, String name, String descriptor,
 				Handle bootstrapMethod, Object[] bootstrapArguments)
 		{
 			super(container, opcode);
@@ -277,7 +277,7 @@ public abstract class Instruction {
 	
 	public static class InstructionJump extends Instruction
 	{
-		InstructionJump(InstructionContainer container, Opcode opcode, Label label)
+		public InstructionJump(InstructionContainer container, Opcode opcode, Label label)
 		{
 			super(container, opcode);
 			this.label = label;
@@ -291,7 +291,7 @@ public abstract class Instruction {
 		@Override
 		public String toString()
 		{
-			return super.toString() + " " + label;
+			return super.toString() + " " + label.toString();
 		}
 		
 		@Override
@@ -305,7 +305,7 @@ public abstract class Instruction {
 	
 	public static class InstructionLdc extends Instruction
 	{
-		InstructionLdc(InstructionContainer container, Opcode opcode, Object constant)
+		public InstructionLdc(InstructionContainer container, Opcode opcode, Object constant)
 		{
 			super(container, opcode);
 			this.constant = constant;
@@ -333,7 +333,7 @@ public abstract class Instruction {
 	
 	public static class InstructionIinc extends Instruction
 	{
-		InstructionIinc(InstructionContainer container, Opcode opcode, int var, int increment)
+		public InstructionIinc(InstructionContainer container, Opcode opcode, int var, int increment)
 		{
 			super(container, opcode);
 			this.var = var;
@@ -369,7 +369,7 @@ public abstract class Instruction {
 	
 	public static class InstructionTableSwitch extends Instruction
 	{
-		InstructionTableSwitch(InstructionContainer container, Opcode opcode, int min, int max,
+		public InstructionTableSwitch(InstructionContainer container, Opcode opcode, int min, int max,
 				Label labelDefault, Label[] labels)
 		{
 			super(container, opcode);
@@ -422,7 +422,7 @@ public abstract class Instruction {
 	
 	public static class InstructionLookupSwitch extends Instruction
 	{
-		InstructionLookupSwitch(InstructionContainer container, Opcode opcode, Label labelDefault, int[] keys, Label[] labels)
+		public InstructionLookupSwitch(InstructionContainer container, Opcode opcode, Label labelDefault, int[] keys, Label[] labels)
 		{
 			super(container, opcode);
 			this.labelDefault = labelDefault;
@@ -460,7 +460,7 @@ public abstract class Instruction {
 	
 	public static class InstructionMultiANewArray extends Instruction
 	{
-		InstructionMultiANewArray(InstructionContainer container, Opcode opcode, String descriptor, int dimension)
+		public InstructionMultiANewArray(InstructionContainer container, Opcode opcode, String descriptor, int dimension)
 		{
 			super(container, opcode);
 			this.descriptor = descriptor;
@@ -495,7 +495,7 @@ public abstract class Instruction {
 	
 	public static class InstructionVoid extends Instruction
 	{
-		InstructionVoid(InstructionContainer container, Opcode opcode) 
+		public InstructionVoid(InstructionContainer container, Opcode opcode) 
 		{
 			super(container, opcode);
 		}

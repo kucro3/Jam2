@@ -4,6 +4,7 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -426,6 +427,33 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return rt;
 	}
 	
+	public static void pushFunctionPrivateReference(MethodVisitor mv, String methodName, LambdaContext ctx)
+	{
+		_pushFunctionReference$(mv, null, methodName, ctx, H_INVOKESPECIAL, true);
+	}
+	
+	public static void pushFunctionStaticReference(MethodVisitor mv, String ownerInternalName, String methodName, LambdaContext ctx)
+	{
+		_pushFunctionReference$(mv, ownerInternalName, methodName, ctx, H_INVOKESTATIC, false);
+	}
+	
+	public static void pushFunctionVirtualReference(MethodVisitor mv, String ownerInternalName, String methodName, LambdaContext ctx)
+	{
+		_pushFunctionReference$(mv, ownerInternalName, methodName, ctx, H_INVOKEVIRTUAL, false);
+	}
+	
+	private static void _pushFunctionReference$(MethodVisitor mv, String ownerInternalName, String methodName, LambdaContext ctx, 
+			int handleType, boolean ignoreHandle)
+	{
+		Type implType = Type.getMethodType(Type.getType(ctx.getReturnType()), _toTypes(ctx.getArgumentDescriptors()));
+		mv.visitInvokeDynamicInsn(ctx.getFunctionName(),
+				_toDescriptor(Type.getObjectType(ctx.getTemplate()).getDescriptor(), null, ""),
+				METHOD_HANDLE_LAMBDA_METAFACTORY,
+				implType,
+				ignoreHandle ? null : new Handle(handleType, ownerInternalName, methodName, ctx.getDescriptor()),
+				implType);
+	}
+	
 	public static boolean pushBoxing(MethodVisitor mv, Class<?> type)
 	{
 		if(!type.isPrimitive())
@@ -839,9 +867,33 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return _toDescriptors(classes);
 	}
 	
+	public static String toDescriptor(String name, String returnType, String[] arguments)
+	{
+		return name == null ?
+				_toDescriptor(returnType, arguments) :
+				(name + _toDescriptor(returnType, arguments));
+	}
+	
 	public static String toDescriptor(String name, Class<?> returnType, Class<?>[] arguments)
 	{
-		return name + _toDescriptor(returnType, arguments);
+		return name == null ?
+				_toDescriptor(returnType, arguments) :
+				(name + _toDescriptor(returnType, arguments));
+	}
+	
+	public static String toDescriptor(Method mthd)
+	{
+		return toDescriptor(mthd.getName(), mthd.getReturnType(), mthd.getParameterTypes());
+	}
+	
+	public static String toConstructorDescriptor(Constructor<?> constructor)
+	{
+		return toConstructorDescriptor(constructor.getParameterTypes());
+	}
+	
+	public static String toConstructorDescriptor(Class<?>[] arguments)
+	{
+		return toDescriptor("<init>", void.class, arguments);
 	}
 	
 	static String[] _toInternalNames(Class<?>[] classes)
@@ -859,9 +911,19 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return _toInternalNames(classes);
 	}
 	
+	public static String toInternalName(Class<?> clazz)
+	{
+		return Type.getInternalName(clazz);
+	}
+	
 	public static String fromDescriptorToInternalName(String desc)
 	{
 		return Type.getType(desc).getInternalName();
+	}
+	
+	public static String fromCanonicalToInternalName(String name)
+	{
+		return name.replace('.', '/');
 	}
 	
 	static Type[] _toTypes(String[] descriptors)
@@ -1049,7 +1111,8 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		VIRTUAL(INVOKEVIRTUAL, false),
 		INTERFACE(INVOKEINTERFACE, true),
-		STATIC(INVOKESTATIC, false);
+		STATIC(INVOKESTATIC, false),
+		SPECIAL(INVOKESPECIAL, false);
 		
 		private CallingType(int insn, boolean flag)
 		{
@@ -1067,13 +1130,27 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			return flag;
 		}
 		
+		public static CallingType fromModifier(int modifiers)
+		{
+			if(Modifier.isStatic(modifiers))
+				return STATIC;
+			if(Modifier.isPrivate(modifiers))
+				return SPECIAL;
+			return VIRTUAL;
+		}
+		
+		public static CallingType fromMethod(ClassContext ctx, MethodContext mctx)
+		{
+			if(Modifier.isInterface(ctx.getAccess()))
+				return INTERFACE;
+			return fromModifier(mctx.getModifier());
+		}
+		
 		public static CallingType fromMethod(Method method)
 		{
 			if(method.getDeclaringClass().isInterface())
 				return INTERFACE;
-			if(Modifier.isStatic(method.getModifiers()))
-				return STATIC;
-			return VIRTUAL;
+			return fromModifier(method.getModifiers());
 		}
 		
 		private final boolean flag;

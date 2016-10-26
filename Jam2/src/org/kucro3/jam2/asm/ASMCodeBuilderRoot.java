@@ -3,7 +3,7 @@ package org.kucro3.jam2.asm;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.kucro3.jam2.util.ClassContext;
+import org.kucro3.jam2.util.Version;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.LocalVariableAnnotationBuilder;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -15,7 +15,7 @@ import org.objectweb.asm.TypePath;
 public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisitor implements Opcodes {
 	protected ASMCodeBuilderRoot(MethodVisitor mv)
 	{
-		super(ClassContext.API, mv);
+		super(Version.getASMVersion(), mv);
 	}
 	
 	public T nop()

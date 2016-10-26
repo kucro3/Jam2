@@ -1,12 +1,12 @@
 package org.kucro3.jam2.util.builder;
 
 import org.kucro3.jam2.asm.ASMCodeBuilderRoot;
+import org.kucro3.jam2.util.MethodContext;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.MethodAnnotationBuilder;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.TypePath;
 
 public class MethodBuilder {
-	MethodBuilder(ClassBuilder owner, MethodVisitor mv)
+	MethodBuilder(ClassBuilder owner, MethodContext mv)
 	{
 		this.owner = owner;
 		this.mv = mv;
@@ -65,11 +65,16 @@ public class MethodBuilder {
 		return new MethodAnnotationBuilder(mv.visitTypeAnnotation(typeRef, typePath, desc, visible), this);
 	}
 	
+	public MethodContext getContext()
+	{
+		return mv;
+	}
+	
 	private MethodCodeBuilder mcb;
 	
 	private final ClassBuilder owner;
 	
-	private final MethodVisitor mv;
+	private final MethodContext mv;
 	
 	public class MethodCodeBuilder extends ASMCodeBuilderRoot<MethodCodeBuilder>
 	{

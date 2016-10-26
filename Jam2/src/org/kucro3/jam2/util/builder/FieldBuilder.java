@@ -1,11 +1,11 @@
 package org.kucro3.jam2.util.builder;
 
+import org.kucro3.jam2.util.FieldContext;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.FieldAnnotationBuilder;
-import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.TypePath;
 
 public class FieldBuilder {
-	FieldBuilder(ClassBuilder owner, FieldVisitor fv)
+	FieldBuilder(ClassBuilder owner, FieldContext fv)
 	{
 		this.owner = owner;
 		this.fv = fv;
@@ -27,7 +27,12 @@ public class FieldBuilder {
 		return new FieldAnnotationBuilder(fv.visitTypeAnnotation(typeRef, typePath, desc, visible), this);
 	}
 	
+	public FieldContext getContext()
+	{
+		return fv;
+	}
+	
 	private final ClassBuilder owner;
 	
-	private final FieldVisitor fv;
+	private final FieldContext fv;
 }

@@ -32,6 +32,15 @@ public class ConstructorContext extends MethodContextImpl
 		return new ConstructorContext(declaringClass, modifier, arguments, throwings);
 	}
 	
+	static ConstructorContext newContext(String declaringClass, int modifier, String descriptor, String[] throwings)
+	{
+		String[] arguments;
+		MethodDescriptorIterator iter = new MethodDescriptorIterator(descriptor);
+		iter.complete();
+		arguments = iter.getArguments();
+		return new ConstructorContext(declaringClass, modifier, arguments, throwings);
+	}
+	
 	ConstructorContext(Class<?> declaringClass, int modifier, Class<?>[] arguments, Class<?>[] throwings)
 	{
 		this(declaringClass, Type.getInternalName(declaringClass), modifier,

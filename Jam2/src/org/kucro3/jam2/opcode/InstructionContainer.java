@@ -2,7 +2,7 @@ package org.kucro3.jam2.opcode;
 
 import java.util.ArrayList;
 
-import org.kucro3.jam2.util.ClassContext;
+import org.kucro3.jam2.util.Version;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -17,7 +17,7 @@ public class InstructionContainer extends MethodVisitor implements Opcodes {
 	
 	public InstructionContainer(MethodVisitor mv)
 	{
-		super(ClassContext.API, mv);
+		super(Version.getASMVersion(), mv);
 	}
 	
 	public int count()
@@ -35,7 +35,7 @@ public class InstructionContainer extends MethodVisitor implements Opcodes {
 		return result;
 	}
 	
-	void append(Instruction insn)
+	public void append(Instruction insn)
 	{
 		insns.add(insn);
 	}
@@ -139,9 +139,21 @@ public class InstructionContainer extends MethodVisitor implements Opcodes {
 		append(new InstructionMultiANewArray(this, Opcode.get(MULTIANEWARRAY), type, dimension));
 	}
 	
+	@Override
+	public void visitLabel(Label label)
+	{
+		super.visitLabel(label);
+	}
+	
 	public Instruction[] toInstructions()
 	{
 		return insns.toArray(new Instruction[0]);
+	}
+	
+	public void revisit(MethodVisitor mv)
+	{
+		for(Instruction insn : insns)
+			insn.visit(mv);
 	}
 	
 	private final ArrayList<Instruction> insns = new ArrayList<>();

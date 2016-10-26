@@ -1,117 +1,66 @@
 package org.kucro3.jam2.jar;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.kucro3.jam2.util.Jam2Util;
-import org.objectweb.asm.ClassReader;
-
-public class ClassFile {
-	ClassFile(JarFile owner, Class<?> loadedClass, ClassReader reader, String name, String location, boolean cached)
+public interface ClassFile {
+	boolean containsField(String name);
+	
+	boolean containsMethod(String name, Class<?> returnType, Class<?>... arguments);
+	
+	String getClassName();
+	
+	String getDebug();
+	
+	ClassField getField(String name);
+	
+	Collection<ClassField> getFields();
+	
+	Class<?> getLoadedClass();
+	
+	ClassMethod getMethod(String name, Class<?> returnType, Class<?>... arguments);
+	
+	ClassMethod getMethod(String name, String returnType, String... arguments);
+	
+	ClassMethod getMethod(String name, String descriptor);
+	
+	Collection<ClassMethod> getMethods();
+	
+	String getSource();
+	
+	Class<?> force();
+	
+	default boolean removeMethod(String name, Class<?> returnType, Class<?>... arguments) {throw new UnsupportedOperationException();}
+	
+	default boolean removeField(String name) {throw new UnsupportedOperationException();}
+	
+	default ClassMethod addMethod(String name, Class<?> returnType, Class<?>... arguments) {throw new UnsupportedOperationException();}
+	
+	default ClassMethod addMethod(String name, String returnType, String... arguments) {throw new UnsupportedOperationException();}
+	
+	default ClassMethod addMethod(String name, String descriptor) {throw new UnsupportedOperationException();}
+	
+	default ClassField addField(String name)  {throw new UnsupportedOperationException();}
+	
+	default void setDebug(String debug) {throw new UnsupportedOperationException();}
+	
+	default void setSource(String source) {throw new UnsupportedOperationException();}
+	
+	public static interface Modifiable extends ClassFile
 	{
-		this.owner = owner;
-		this.loadedClass = loadedClass;
-		this.cr = reader;
-		this.cached = cached;
-		this.location = location;
-		this.name = name;
+		boolean removeMethod(String name, Class<?> returnType, Class<?>... arguments);
 		
-		if(cached)
-			this.cfv = new ClassFileVisitor(this);
-		else
-			this.cfv = null;
+		boolean removeField(String name);
 		
-		if(this.cr != null)
-			this.cr.accept(this.cfv, 0);
+		ClassMethod.Modifiable addMethod(String name, Class<?> returnType, Class<?>... arguments);
+		
+		ClassMethod.Modifiable addMethod(String name, String returnType, String... arguments);
+		
+		ClassMethod.Modifiable addMethod(String name, String descriptor);
+		
+		ClassField.Modifiable addField(String name);
+		
+		void setDebug(String debug);
+		
+		void setSource(String source);
 	}
-	
-	public JarFile getOwner()
-	{
-		return owner;
-	}
-	
-	public Class<?> getLoadedClass()
-	{
-		return loadedClass;
-	}
-	
-	public boolean isInstructionCached()
-	{
-		return cached;
-	}
-	
-	public String getSource()
-	{
-		return source;
-	}
-	
-	public String getDebug()
-	{
-		return debug;
-	}
-	
-	public Collection<ClassField> getFields()
-	{
-		return fields.values();
-	}
-	
-	public Collection<ClassMethod> getMethods()
-	{
-		return methods.values();
-	}
-	
-	public boolean containsField(String name)
-	{
-		return fields.containsKey(name);
-	}
-	
-	public ClassField getField(String name)
-	{
-		return fields.get(name);
-	}
-	
-	public boolean containsMethod(String name)
-	{
-		return methods.containsKey(name);
-	}
-	
-	public ClassMethod getMethod(String name, Class<?> returnType, Class<?>... arguments)
-	{
-		return methods.get(Jam2Util.toDescriptor(name, returnType, arguments));
-	}
-	
-	String getLocation()
-	{
-		return location;
-	}
-	
-	public String getClassName()
-	{
-		return name;
-	}
-	
-	private final String name;
-	
-	private final String location;
-	
-	private final JarFile owner;
-	
-	private final Class<?> loadedClass;
-	
-	private final ClassReader cr;
-	
-	private final boolean cached;
-	
-	final ClassFileVisitor cfv;
-	
-	// initialized by CFV
-	
-	String source;
-	
-	String debug;
-	
-	final Map<String, ClassField> fields = new HashMap<>();
-	
-	final Map<String, ClassMethod> methods = new HashMap<>();
 }

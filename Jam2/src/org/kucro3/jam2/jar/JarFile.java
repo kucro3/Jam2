@@ -1,7 +1,6 @@
 package org.kucro3.jam2.jar;
 
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 import java.util.jar.Manifest;
 import java.util.zip.*;
@@ -22,11 +21,9 @@ public class JarFile implements Jar {
 		this.zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(file)));
 		this.loader = new JarClassLoader(file, this.getClass().getClassLoader());
 		this.resources = new ArrayList<>();
-		this.notClass = new ArrayList<>();
 		this.cached = cached;
 		this.classes = new HashMap<>();
 		this.manifest = new Manifest();
-		this.manifest.clear();
 		this.loadClass = loadClass;
 		this.loadAll();
 	}
@@ -52,8 +49,6 @@ public class JarFile implements Jar {
 			resources.add(zEntry.getName());
 			if(isClass(temp = zEntry.getName()))
 				entries.add(temp);
-			else
-				notClass.add(zEntry.getName());
 		}
 		
 		if(entries.isEmpty())
@@ -91,7 +86,7 @@ public class JarFile implements Jar {
 		cr = this.tempCr;
 		this.tempCr = null;
 		
-		return new ClassFile(this, next, cr, toClassName(location), location, cached);
+		return new JarClassFileImpl(next, cr, toClassName(location), location, cached);
 	}
 	
 	@Override
@@ -131,10 +126,9 @@ public class JarFile implements Jar {
 		return cached;
 	}
 	
-	@Override
-	public URL getResource(String name)
+	public boolean isLoaded()
 	{
-		return loader.getResource(name);
+		return loadClass;
 	}
 	
 	@Override
@@ -156,25 +150,11 @@ public class JarFile implements Jar {
 	}
 	
 	@Override
-	public boolean removeResource(String name)
+	public Resource getResource(String name)
 	{
-		boolean r = resources.remove(name);
-		if(r)
-			if(isClass(name))
-				removeClass(toClassName(name));
-		return r;
-	}
-	
-	@Override
-	public boolean removeClass(String name)
-	{
-		return classes.remove(name) != null;
-	}
-	
-	@Override
-	public Collection<String> getResourcesExpectClasses()
-	{
-		return Collections.unmodifiableList(notClass);
+		if(loader.getResourceAsStream(name) == null)
+			return null;
+		return new ResourceImpl(name);
 	}
 	
 	static boolean isClass(String res)
@@ -195,8 +175,6 @@ public class JarFile implements Jar {
 	
 	final JarClassLoader loader;
 	
-	final List<String> notClass;
-	
 	final List<String> resources;
 	
 	private final Map<String, ClassFile> classes;
@@ -204,4 +182,26 @@ public class JarFile implements Jar {
 	private final boolean cached;
 	
 	private final ZipInputStream zis;
+	
+	class ResourceImpl implements Resource
+	{
+		ResourceImpl(String name)
+		{
+			this.name = name;
+		}
+		
+		@Override
+		public InputStream asInputStream()
+		{
+			return JarFile.this.loader.getResourceAsStream(name);
+		}
+
+		@Override
+		public String getName() 
+		{
+			return name;
+		}
+		
+		private final String name;
+	}
 }

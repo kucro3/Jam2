@@ -48,6 +48,7 @@ public class MethodContextImpl extends MethodContext implements AccessableContex
 		this.exceptionTypes = exceptionTypes;
 		this.exceptions = throwings;
 		this.modifier = modifier;
+		this.descriptor = Jam2Util.toDescriptor(methodName, returnTypeDescriptor, argumentDescriptors);
 	}
 	
 	MethodContextImpl(Class<?> declaringClass, String declaringClassInternalName, int modifier, String methodName,
@@ -72,6 +73,12 @@ public class MethodContextImpl extends MethodContext implements AccessableContex
 	public void visitMaxs(int a, int b)
 	{
 		super.visitMaxs(a, b);
+	}
+	
+	@Override
+	public String getMethodDescriptor()
+	{
+		return descriptor;
 	}
 	
 	@Override
@@ -175,4 +182,6 @@ public class MethodContextImpl extends MethodContext implements AccessableContex
 	private final Class<?> returnType;
 	
 	private final String returnTypeDescriptor;
+	
+	private final String descriptor;
 }
