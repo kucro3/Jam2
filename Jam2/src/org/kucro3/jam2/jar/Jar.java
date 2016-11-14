@@ -64,6 +64,8 @@ public interface Jar {
 		
 		public static interface Modifiable extends Resource
 		{
+			void force();
+			
 			void clear();
 			
 			boolean ensured();
