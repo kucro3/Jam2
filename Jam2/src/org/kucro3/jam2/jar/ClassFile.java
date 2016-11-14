@@ -27,7 +27,7 @@ public interface ClassFile {
 	
 	String getSource();
 	
-	Class<?> force();
+	Class<?> forceLoad();
 	
 	default boolean removeMethod(String name, Class<?> returnType, Class<?>... arguments) {throw new UnsupportedOperationException();}
 	

@@ -101,7 +101,7 @@ class JarClassFileImpl implements ClassFile {
 		return cached;
 	}
 	
-	public Class<?> force()
+	public Class<?> forceLoad()
 	{
 		if(loadedClass != null)
 			return loadedClass;

@@ -9,7 +9,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.kucro3.jam2.opcode.Instruction.*;
 
-public class InstructionContainer extends MethodVisitor implements Opcodes {
+public class InstructionContainer extends MethodVisitor implements Opcodes, Cloneable {
 	public InstructionContainer()
 	{
 		this(null);
@@ -25,7 +25,8 @@ public class InstructionContainer extends MethodVisitor implements Opcodes {
 		return insns.size();
 	}
 	
-	public int hash()
+	@Override
+	public int hashCode()
 	{
 		int result = 0;
 		
@@ -35,9 +36,27 @@ public class InstructionContainer extends MethodVisitor implements Opcodes {
 		return result;
 	}
 	
+	@Override
+	public InstructionContainer clone()
+	{
+		InstructionContainer copy = new InstructionContainer();
+		copy.insns.addAll(this.insns);
+		return copy;
+	}
+	
 	public void append(Instruction insn)
 	{
 		insns.add(insn);
+	}
+	
+	public int length()
+	{
+		return insns.size();
+	}
+	
+	public void clear()
+	{
+		insns.clear();
 	}
 	
 	@Override

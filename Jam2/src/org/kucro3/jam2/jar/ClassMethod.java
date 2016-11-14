@@ -26,8 +26,6 @@ public interface ClassMethod {
 	
 	default void setExceptions(String[] exceptions) {throw new UnsupportedOperationException();}
 	
-	default void setInstructionContainer(InstructionContainer container) {throw new UnsupportedOperationException();}
-	
 	default void setSignature(String signature) {throw new UnsupportedOperationException();}
 
 	public static interface Modifiable extends ClassMethod
@@ -35,8 +33,6 @@ public interface ClassMethod {
 		void setAccess(int access);
 		
 		void setExceptions(String[] exceptions);
-		
-		void setInstructionContainer(InstructionContainer container);
 		
 		void setSignature(String signature);
 	}

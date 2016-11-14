@@ -23,6 +23,7 @@ import org.kucro3.jam2.visitor.InstructionVisitor;
 import org.kucro3.util.Reference;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 public class JarPot implements Jar.Modifiable {
@@ -36,55 +37,48 @@ public class JarPot implements Jar.Modifiable {
 		this._init();
 	}
 	
-	public JarPot(Jar jar)
+	public JarPot(Jar jar) throws IOException
 	{
 		this();
 		_import(jar);
 	}
 	
-	public JarPot(JarFile jar)
+	final void _import(Jar jar) throws IOException
 	{
-		this();
-		_fastImport(jar);
+		for(String loc : jar.getResources())
+			_importResource(loc, jar.getResourceAsStream(loc));
 	}
 	
-	final void _import(Jar jar)
+	final void _importResource(String loc, InputStream is) throws IOException
 	{
-		
-	}
-	
-	final void _fastImport(JarFile jar)
-	{
-		
-	}
-	
-	private final void _importClass(String loc, InputStream is)
-	{
-		try {
-			ClassReader cr = new ClassReader(is);
-			ClassContext cctx = new ClassContext(Version.getClassVersion(),
-					cr.getAccess(), cr.getClassName(), null, cr.getSuperName(), cr.getInterfaces());
-			InstructionVisitor insns = new InstructionVisitor(cctx);
-			HookedClassVisitor hooked = new HookedClassVisitor(insns);
-			hooked.setListener(
-				new ClassVisitorListener() {
-					@Override
-					public void onVisitMethod(ClassVisitor cv,
-							int access, String name, String descriptor, String signature, String[] exceptions,
-							Reference<MethodVisitor> ref)
-					{
-					}
-				}
-			); 
-			cr.accept(insns, 0);
-		} catch (IOException e) {
-			// ignored
+		if(JarFile.isClass(loc))
+			_importClass(loc, is);
+		else
+		{
+			ResourceImpl impl = new ResourceImpl(loc);
+			OutputStream os = impl.getOutputStream();
+			int b;
+			while((b = is.read()) != -1)
+				os.write(b);
+			
+			// I'm struggling for this
+			// ((ByteArrayReferenceOutputStream) os).ref.reset();
+			
+			resources.put(loc, impl);
 		}
 	}
 	
-	private final void _fastImportClass(String loc, ClassFile cf)
+	final void _importClass(String loc, InputStream is) throws IOException
 	{
-		
+		ClassReader cr = new ClassReader(is);
+		ClassImpl clz = new ClassImpl(Version.getClassVersion(),
+				cr.getAccess(), cr.getClassName(), null, cr.getSuperName(), cr.getInterfaces());
+		InstructionVisitor insns = new InstructionVisitor(cctx);
+		HookedClassVisitor hooked = new HookedClassVisitor(insns);
+		hooked.setListener(new ClassListener(clz)); 
+		cr.accept(hooked, 0);
+		classes.put(JarFile.toClassName(loc), clz);
+		resources.put(loc, clz);
 	}
 	
 	private final void _init()
@@ -115,6 +109,11 @@ public class JarPot implements Jar.Modifiable {
 			public OutputStream getOutputStream() 
 			{
 				return ros;
+			}
+			
+			@Override
+			public void force()
+			{
 			}
 			
 			@Override
@@ -189,6 +188,12 @@ public class JarPot implements Jar.Modifiable {
 			return false;
 		if(res instanceof UnremoveableResource.Modifiable)
 			return false;
+		if(res instanceof ClassImpl)
+		{
+			ClassImpl impl = (ClassImpl) res;
+			classes.remove(impl.getClassName());
+			ensuringQueue.remove(impl.hook);
+		}
 		return resources.remove(name) != null;
 	}
 	
@@ -231,7 +236,11 @@ public class JarPot implements Jar.Modifiable {
 	@Override
 	public boolean removeClass(String name) 
 	{
-		return classes.remove(name) != null;
+		ClassImpl impl;
+		if((impl = (ClassImpl) classes.remove(name)) == null)
+			return false;
+		resources.remove(impl.resourceName);
+		return true;
 	}
 
 	@Override
@@ -319,10 +328,12 @@ public class JarPot implements Jar.Modifiable {
 	{
 		ClassImpl(ClassContext cctx)
 		{
+			assert cctx.getMethods().isEmpty() && cctx.getFields().isEmpty()
+				: new IllegalArgumentException("ClassContext must be empty (information template only)");
+			
 			this.name = cctx.getInternalName().replace('/', '.');
 			this.resourceName = cctx.getInternalName() + ".class";
 			this.builder = new ClassBuilder(cctx);
-			this.ctx = cctx;
 			this._hook();
 		}
 		
@@ -335,14 +346,26 @@ public class JarPot implements Jar.Modifiable {
 					signature,
 					Jam2Util.toInternalName(superClass),
 					Jam2Util.toInternalNames(interfaces));
-			this.ctx = this.builder.getContext();
+			this._hook();
+		}
+		
+		ClassImpl(int version, int access, String name, String signature, String superClass, String[] interfaces)
+		{
+			this.name = name;
+			this.resourceName = Jam2Util.fromCanonicalToInternalName(name) + ".class";
+			this.builder = new ClassBuilder(version, access, 
+					superClass,
+					signature,
+					superClass,
+					interfaces);
 			this._hook();
 		}
 		
 		private final void _hook()
 		{
-			JarPot.this.ensuringQueue.addHook(() -> {
+			JarPot.this.ensuringQueue.addHook(this.hook = () -> {
 				this.subHooks.ensureAll();
+				this.builder.appendSource(source, debug);
 				this.ensuredBytes = this.builder.buildAsBytes();
 			});
 		}
@@ -425,25 +448,42 @@ public class JarPot implements Jar.Modifiable {
 		}
 		
 		@Override
-		public Class<?> force()
+		public void force()
 		{
-			byte[] byts = builder.buildAsBytes();
-			if(cached == null)
-				return cached = Jam2Util.getInstance().defClass(Jam2Util.fromCanonicalToInternalName(name)
-						, ensuredBytes = byts, 0, byts.length);
-			return cached;
+			hook.ensure();
+			ensuringQueue.remove(hook);
+		}
+		
+		@Override
+		public Class<?> forceLoad()
+		{
+			if(cached != null)
+				return cached;
+			force();
+			return cached = Jam2Util.getInstance().defClass(Jam2Util.fromCanonicalToInternalName(name)
+					, ensuredBytes, 0, ensuredBytes.length);
 		}
 
 		@Override
 		public boolean removeMethod(String name, Class<?> returnType, Class<?>... arguments) 
 		{
-			return ctx.removeMethod(name, returnType, arguments);
+			MethodImpl impl;
+			if((impl = (MethodImpl) methods.remove(Jam2Util.toDescriptor(name, returnType, arguments))) != null)
+				this.subHooks.remove(impl.hook);
+			else
+				return false;
+			return true;
 		}
 
 		@Override
 		public boolean removeField(String name)
 		{
-			return ctx.removeField(name);
+			FieldImpl impl;
+			if((impl = (FieldImpl) fields.remove(name)) != null)
+				this.subHooks.remove(impl.hook);
+			else
+				return false;
+			return true;
 		}
 
 		@Override
@@ -534,13 +574,13 @@ public class JarPot implements Jar.Modifiable {
 		
 		private final ClassBuilder builder;
 		
-		private final ClassContext ctx;
-		
 		private final EnsuringQueue subHooks = new EnsuringQueue();
 		
 		private final Map<String, ClassMethod> methods = new HashMap<>();
 		
 		private final Map<String, ClassField> fields = new HashMap<>();
+		
+		private EnsuringHook hook;
 	}
 	
 	class FieldImpl implements ClassField.Modifiable
@@ -549,7 +589,7 @@ public class JarPot implements Jar.Modifiable {
 		{
 			this.owner = owner;
 			this.name = name;
-			this.owner.subHooks.addHook(() -> {
+			this.owner.subHooks.addHook(this.hook = () -> {
 				this.owner.builder.appendField(access, name, descriptor, signature, owner);
 			});
 		}
@@ -608,6 +648,8 @@ public class JarPot implements Jar.Modifiable {
 			this.value = value;
 		}
 		
+		private final EnsuringHook hook;
+		
 		int access;
 		
 		String descriptor;
@@ -629,7 +671,8 @@ public class JarPot implements Jar.Modifiable {
 			this.name = name;
 			this.descriptor = descriptor;
 			this.descAnalyzer = new LazyDescriptorAnalyzer(descriptor);
-			this.owner.subHooks.addHook(() -> {
+			this.insns = new InstructionContainer();
+			this.owner.subHooks.addHook(this.hook = () -> {
 				this.insns.revisit(this.owner.builder.appendMethod(access, name, descriptor, signature, exceptions).getContext());
 			});
 		}
@@ -690,12 +733,6 @@ public class JarPot implements Jar.Modifiable {
 		}
 
 		@Override
-		public void setInstructionContainer(InstructionContainer container)
-		{
-			this.insns = container;
-		}
-
-		@Override
 		public void setSignature(String signature)
 		{
 			this.signature = signature;
@@ -713,6 +750,8 @@ public class JarPot implements Jar.Modifiable {
 			return descAnalyzer.getArguments();
 		}
 		
+		private final EnsuringHook hook;
+		
 		private final LazyDescriptorAnalyzer descAnalyzer;
 		
 		int access;
@@ -721,7 +760,7 @@ public class JarPot implements Jar.Modifiable {
 		
 		String[] exceptions;
 		
-		InstructionContainer insns;
+		final InstructionContainer insns;
 		
 		final String name;
 		
@@ -741,7 +780,7 @@ public class JarPot implements Jar.Modifiable {
 		
 		private final void _hook()
 		{
-			JarPot.this.ensuringQueue.addHook(() -> {
+			JarPot.this.ensuringQueue.addHook(this.hook = () -> {
 				ensuredBytes = ros.getReference().toByteArray();
 			});
 		}
@@ -776,6 +815,15 @@ public class JarPot implements Jar.Modifiable {
 		{
 			return ros;
 		}
+		
+		@Override
+		public void force()
+		{
+			hook.ensure();
+			ensuringQueue.remove(hook);
+		}
+		
+		private EnsuringHook hook;
 		
 		byte[] ensuredBytes;
 		
@@ -851,5 +899,40 @@ public class JarPot implements Jar.Modifiable {
 		}
 		
 		ByteArrayOutputStream ref;
+	}
+	
+	class ClassListener implements ClassVisitorListener
+	{
+		ClassListener(ClassImpl clz)
+		{
+			this.clz = clz;
+		}
+		
+		@Override
+		public void onVisitMethod(ClassVisitor cv,
+				int access, String name, String descriptor, String signature, String[] exceptions,
+				Reference<MethodVisitor> ref)
+		{
+			MethodImpl impl = (MethodImpl) clz.addMethod(name, descriptor);
+			
+			impl.setAccess(access);
+			impl.setSignature(signature);
+			impl.setExceptions(exceptions);
+		}
+		
+		@Override
+		public void onVisitField(ClassVisitor cv,
+				int access, String name, String descriptor, String signature, Object value,
+				Reference<FieldVisitor> ref)
+		{
+			FieldImpl impl = (FieldImpl) clz.addField(name);
+			
+			impl.setAccess(access);
+			impl.setDescriptor(descriptor);
+			impl.setSignature(signature);
+			impl.setValue(value);
+		}
+		
+		private final ClassImpl clz;
 	}
 }

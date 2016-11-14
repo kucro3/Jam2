@@ -134,31 +134,6 @@ public class ClassContext extends ClassVisitor implements Opcodes
 		return mappedFields.get(toFieldKey(name));
 	}
 	
-	public boolean removeConstructor(Class<?>... arguments)
-	{
-		return removeConstructor(_toDescriptors(arguments));
-	}
-	
-	public boolean removeConstructor(String... arguments)
-	{
-		return mappedMethods.remove(toConstructorKey(arguments)) != null;
-	}
-	
-	public boolean removeMethod(String name, Class<?> returnType, Class<?>... arguments)
-	{
-		return removeMethod(name, Type.getDescriptor(returnType), _toDescriptors(arguments));
-	}
-	
-	public boolean removeMethod(String name, String returnType, String... arguments)
-	{
-		return mappedMethods.remove(toMethodKey(name, returnType, arguments)) != null;
-	}
-	
-	public boolean removeField(String name)
-	{
-		return mappedFields.remove(name) != null;
-	}
-	
 	ConstructorContext getConstructor(String signature)
 	{
 		try {
