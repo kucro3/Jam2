@@ -6,18 +6,19 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 public abstract class Instruction {
-	Instruction(InstructionContainer container, Opcode opcode)
+	protected Instruction(Opcode opcode)
 	{
-		this.container = container;
 		this.opcode = opcode;
+		this.metadata = false;
 		
 		if(opcode.getForm() == OpcodeForm.VAR_CST)
 			throw new IllegalArgumentException("Opcode \"" + opcode.getName() + "\" is not supported in ASM");
 	}
 	
-	public InstructionContainer getContainer()
+	protected Instruction()
 	{
-		return container;
+		this.opcode = null;
+		this.metadata = true;
 	}
 	
 	public Opcode getOpcode()
@@ -31,17 +32,22 @@ public abstract class Instruction {
 		return opcode.getName();
 	}
 	
-	public abstract void visit(MethodVisitor mv);
+	public boolean isMetadata()
+	{
+		return metadata;
+	}
 	
-	private final InstructionContainer container;
+	public abstract void visit(MethodVisitor mv);
 	
 	private final Opcode opcode;
 	
+	private final boolean metadata;
+	
 	public static class InstructionInt extends Instruction
 	{
-		public InstructionInt(InstructionContainer container, Opcode opcode, int operand) 
+		public InstructionInt(Opcode opcode, int operand) 
 		{
-			super(container, opcode);
+			super(opcode);
 			this.operand = operand;
 		}
 		
@@ -62,14 +68,14 @@ public abstract class Instruction {
 			mv.visitIntInsn(super.opcode.getCode(), operand);
 		}
 		
-		private final int operand;
+		protected int operand;
 	}
 	
 	public static class InstructionVar extends Instruction
 	{
-		public InstructionVar(InstructionContainer container, Opcode opcode, int var) 
+		public InstructionVar(Opcode opcode, int var) 
 		{
-			super(container, opcode);
+			super(opcode);
 			this.var = var;
 		}
 		
@@ -90,14 +96,14 @@ public abstract class Instruction {
 			mv.visitVarInsn(super.opcode.getCode(), var);
 		}
 
-		private final int var;
+		protected int var;
 	}	
 	
 	public static class InstructionType extends Instruction
 	{
-		public InstructionType(InstructionContainer container, Opcode opcode, String type) 
+		public InstructionType(Opcode opcode, String type) 
 		{
-			super(container, opcode);
+			super(opcode);
 			this.type = type;
 		}
 		
@@ -118,14 +124,14 @@ public abstract class Instruction {
 			mv.visitTypeInsn(super.opcode.getCode(), type);
 		}
 		
-		private final String type;
+		protected String type;
 	}
 	
 	public static class InstructionField extends Instruction
 	{
-		public InstructionField(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor)
+		public InstructionField(Opcode opcode, String owner, String name, String descriptor)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.owner = owner;
 			this.name = name;
 			this.descriptor = descriptor;
@@ -158,27 +164,27 @@ public abstract class Instruction {
 			return super.toString() + " " + owner + "#" + name + ":" + descriptor;
 		}
 		
-		private final String owner;
+		protected String owner;
 		
-		private final String name;
+		protected String name;
 		
-		private final String descriptor;
+		protected String descriptor;
 	}
 	
 	public static class InstructionMethod extends Instruction
 	{
-		public InstructionMethod(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor, boolean ifInterface)
+		public InstructionMethod(Opcode opcode, String owner, String name, String descriptor, boolean ifInterface)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.owner = owner;
 			this.name = name;
 			this.descriptor = descriptor;
 			this.ifInterface = ifInterface;
 		}
 		
-		InstructionMethod(InstructionContainer container, Opcode opcode, String owner, String name, String descriptor)
+		InstructionMethod( Opcode opcode, String owner, String name, String descriptor)
 		{
-			this(container, opcode, owner, name, descriptor, false);
+			this(opcode, owner, name, descriptor, false);
 		}
 		
 		public boolean isInterface()
@@ -213,21 +219,21 @@ public abstract class Instruction {
 			mv.visitMethodInsn(super.opcode.getCode(), owner, name, descriptor, ifInterface);
 		}
 		
-		private final boolean ifInterface;
+		protected boolean ifInterface;
 		
-		private final String owner;
+		protected String owner;
 		
-		private final String name;
+		protected String name;
 		
-		private final String descriptor;
+		protected String descriptor;
 	}
 	
 	public static class InstructionInvokeDynamic extends Instruction
 	{
-		public InstructionInvokeDynamic(InstructionContainer container, Opcode opcode, String name, String descriptor,
+		public InstructionInvokeDynamic(Opcode opcode, String name, String descriptor,
 				Handle bootstrapMethod, Object[] bootstrapArguments)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.name = name;
 			this.descriptor = descriptor;
 			this.bootstrapMethod = bootstrapMethod;
@@ -266,20 +272,20 @@ public abstract class Instruction {
 			mv.visitInvokeDynamicInsn(name, descriptor, bootstrapMethod, bootstrapArguments);
 		}
 		
-		private final String name;
+		protected String name;
 		
-		private final String descriptor;
+		protected String descriptor;
 		
-		private final Handle bootstrapMethod;
+		protected Handle bootstrapMethod;
 		
-		private final Object[] bootstrapArguments;
+		protected Object[] bootstrapArguments;
 	}
 	
 	public static class InstructionJump extends Instruction
 	{
-		public InstructionJump(InstructionContainer container, Opcode opcode, Label label)
+		public InstructionJump(Opcode opcode, Label label)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.label = label;
 		}
 		
@@ -300,14 +306,14 @@ public abstract class Instruction {
 			mv.visitJumpInsn(super.opcode.getCode(), label);
 		}
 		
-		private final Label label;
+		protected Label label;
 	}
 	
 	public static class InstructionLdc extends Instruction
 	{
-		public InstructionLdc(InstructionContainer container, Opcode opcode, Object constant)
+		public InstructionLdc(Opcode opcode, Object constant)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.constant = constant;
 		}
 		
@@ -328,14 +334,14 @@ public abstract class Instruction {
 			mv.visitLdcInsn(constant);
 		}
 		
-		private final Object constant;
+		protected Object constant;
 	}
 	
 	public static class InstructionIinc extends Instruction
 	{
-		public InstructionIinc(InstructionContainer container, Opcode opcode, int var, int increment)
+		public InstructionIinc(Opcode opcode, int var, int increment)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.var = var;
 			this.increment = increment;
 		}
@@ -362,17 +368,17 @@ public abstract class Instruction {
 			mv.visitIincInsn(var, increment);
 		}
 		
-		private final int var;
+		protected int var;
 		
-		private final int increment;
+		protected int increment;
 	}
 	
 	public static class InstructionTableSwitch extends Instruction
 	{
-		public InstructionTableSwitch(InstructionContainer container, Opcode opcode, int min, int max,
+		public InstructionTableSwitch(Opcode opcode, int min, int max,
 				Label labelDefault, Label[] labels)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.min = min;
 			this.max = max;
 			this.labelDefault = labelDefault;
@@ -411,20 +417,20 @@ public abstract class Instruction {
 			mv.visitTableSwitchInsn(min, max, labelDefault, labels);
 		}
 		
-		private final int min;
+		protected int min;
 		
-		private final int max;
+		protected int max;
 		
-		private final Label labelDefault;
+		protected Label labelDefault;
 		
-		private final Label[] labels;
+		protected Label[] labels;
 	}
 	
 	public static class InstructionLookupSwitch extends Instruction
 	{
-		public InstructionLookupSwitch(InstructionContainer container, Opcode opcode, Label labelDefault, int[] keys, Label[] labels)
+		public InstructionLookupSwitch(Opcode opcode, Label labelDefault, int[] keys, Label[] labels)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.labelDefault = labelDefault;
 			this.keys = keys;
 			this.labels = labels;
@@ -451,18 +457,18 @@ public abstract class Instruction {
 			mv.visitLookupSwitchInsn(labelDefault, keys, labels);
 		}
 		
-		private final Label labelDefault;
+		protected Label labelDefault;
 		
-		private final int[] keys;
+		protected int[] keys;
 		
-		private final Label[] labels;
+		protected Label[] labels;
 	}
 	
 	public static class InstructionMultiANewArray extends Instruction
 	{
-		public InstructionMultiANewArray(InstructionContainer container, Opcode opcode, String descriptor, int dimension)
+		public InstructionMultiANewArray(Opcode opcode, String descriptor, int dimension)
 		{
-			super(container, opcode);
+			super(opcode);
 			this.descriptor = descriptor;
 			this.dimension = dimension;
 		}
@@ -488,16 +494,16 @@ public abstract class Instruction {
 			mv.visitMultiANewArrayInsn(descriptor, dimension);
 		}
 		
-		private final String descriptor;
+		protected String descriptor;
 		
-		private final int dimension;
+		protected int dimension;
 	}
 	
 	public static class InstructionVoid extends Instruction
 	{
-		public InstructionVoid(InstructionContainer container, Opcode opcode) 
+		public InstructionVoid(Opcode opcode) 
 		{
-			super(container, opcode);
+			super(opcode);
 		}
 		
 		@Override

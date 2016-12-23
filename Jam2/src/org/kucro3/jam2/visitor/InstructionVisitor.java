@@ -109,5 +109,10 @@ public class InstructionVisitor extends MethodVisitor {
 		container.visitVarInsn(insn, var);
 	}
 	
+	public void clear()
+	{
+		container.clear();
+	}
+	
 	final InstructionContainer container;
 }
