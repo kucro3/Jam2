@@ -114,5 +114,5 @@ public class InstructionVisitor extends MethodVisitor {
 		container.clear();
 	}
 	
-	final InstructionContainer container;
+	protected final InstructionContainer container;
 }

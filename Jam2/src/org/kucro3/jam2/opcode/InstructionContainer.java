@@ -49,6 +49,23 @@ public class InstructionContainer extends MethodVisitor implements Opcodes, Clon
 		insns.add(insn);
 	}
 	
+	public void appendAndVisit(Instruction insn)
+	{
+		if(super.mv != null)
+			insn.visit(super.mv);
+		insns.add(insn);
+	}
+
+	public void remove(int i)
+	{
+		insns.remove(i);
+	}
+	
+	public Instruction get(int i)
+	{
+		return insns.get(i);
+	}
+	
 	public int length()
 	{
 		return insns.size();
@@ -57,6 +74,57 @@ public class InstructionContainer extends MethodVisitor implements Opcodes, Clon
 	public void clear()
 	{
 		insns.clear();
+	}
+	
+	public InstructionContainer filterAndClone(InstructionFilter filter, MethodVisitor mv)
+	{
+		InstructionContainer ic = new InstructionContainer();
+		for(Instruction insn : this.insns)
+			if(filter.accept(insn))
+				insn.visit(ic);
+		return ic;
+	}
+	
+	public InstructionContainer filterAndClone(InstructionFilter filter)
+	{
+		return filterAndClone(filter, null);
+	}
+	
+	public InstructionContainer filterAndCopy(InstructionFilter filter, MethodVisitor mv)
+	{
+		InstructionContainer ic = new InstructionContainer();
+		for(Instruction insn : this.insns)
+			if(filter.accept(insn))
+				ic.append(insn);
+		return ic;
+	}
+	
+	public InstructionContainer filterAndCopy(InstructionFilter filter)
+	{
+		return filterAndClone(filter, null);
+	}
+	
+	public InstructionContainer filterAndRevisit(InstructionFilter filter, MethodVisitor mv)
+	{
+		InstructionContainer ic = new InstructionContainer();
+		for(Instruction insn : this.insns)
+			if(filter.accept(insn))
+				ic.appendAndVisit(insn);
+		return ic;
+	}
+	
+	public InstructionContainer filterAndRevisit(InstructionFilter filter)
+	{
+		return filterAndClone(filter, null);
+	}
+	
+	public synchronized void filterThis(InstructionFilter filter)
+	{
+		Instruction[] insns = toInstructions();
+		this.insns.clear();
+		for(Instruction insn : insns)
+			if(filter.accept(insn))
+				this.insns.add(insn);
 	}
 	
 	@Override

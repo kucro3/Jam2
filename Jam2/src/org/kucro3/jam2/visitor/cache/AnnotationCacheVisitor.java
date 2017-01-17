@@ -1,4 +1,4 @@
-package org.kucro3.jam2.visitor;
+package org.kucro3.jam2.visitor.cache;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -67,6 +67,12 @@ public class AnnotationCacheVisitor extends AnnotationVisitor implements CacheVi
 	{
 		for(Action act : actions)
 			act.revisit(t);
+	}
+	
+	public void revisitOptional(AnnotationVisitor t)
+	{
+		if(t != null)
+			revisit(t);
 	}
 	
 	private final List<Action> actions = new LinkedList<>();

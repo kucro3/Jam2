@@ -1,4 +1,4 @@
-package org.kucro3.jam2.visitor;
+package org.kucro3.jam2.visitor.cache;
 
 import java.util.LinkedList;
 
@@ -35,6 +35,12 @@ public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor<Fiel
 		
 		if(endVisited)
 			t.visitEnd();
+	}
+	
+	public void revisitOptional(FieldVisitor t)
+	{
+		if(t != null)
+			revisit(t);
 	}
 	
 	@Override
