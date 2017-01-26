@@ -8,9 +8,16 @@
 
 ### Preview #17012602
 * [*] org.kucro3.jam2.visior.cache
-
  > (+) ContainerHelper
+ 
+* [*] org.kucro3.jam2.opcode
 
+ > + 移除待定内容 
+ 
+ >> (-) ControlFlowSimluator
+ 
+ >> (-) VMSimluator
+ 
 ### Preview #17012601 
 * [*] 结构调整
 * [+] org.kucro3.jam2.visitor.cache
