@@ -87,7 +87,7 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		iac.desc = desc;
 		iac.visible = visible;
 		iac.acv = acv;
-		annos.add(iac);
+		cacheAnnotation(iac);
 		return acv;
 	}
 	
@@ -102,8 +102,13 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		itac.desc = desc;
 		itac.visible = visible;
 		itac.acv = acv;
-		annos.add(itac);
+		cacheAnnotation(itac);
 		return acv;
+	}
+	
+	protected void cacheAnnotation(InfoAnnotationContainer iac)
+	{
+		annos.add(iac);
 	}
 	
 	@Override
@@ -117,8 +122,13 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		fc.signature = signature;
 		fc.value = value;
 		fc.fcv = fcv;
-		fields.put(name, fc);
+		cacheField(fc);
 		return fcv;
+	}
+	
+	protected void cacheField(FieldContainer fc)
+	{
+		fields.put(fc.name, fc);
 	}
 	
 	@Override
@@ -131,9 +141,13 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		mc.signature = signature;
 		mc.exceptions = exceptions;
 		mc.mcv = mcv;
-		String fullDesc = name + desc;
-		methods.put(fullDesc, mc);
+		cacheMethod(mc);
 		return mcv;
+	}
+	
+	protected void cacheMethod(MethodContainer mc)
+	{
+		methods.put(mc.fullDesc, mc);
 	}
 	
 	public ClassEssentialsContainer getEssentials()
@@ -349,23 +363,42 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	
 	public class InfoAnnotationContainer
 	{
+		{
+			typeId = TYPEID_ANNOTATION;
+		}
+		
+		protected int typeId;
+		
 		public String desc;
 		
 		public boolean visible;
 		
 		public AnnotationCacheVisitor acv;
 		
+		public static final int TYPEID_ANNOTATION = 1;
+		
 		public void visit(ClassVisitor cv)
 		{
 			acv.revisitOptional(cv.visitAnnotation(desc, visible));
+		}
+		
+		public final int typeId()
+		{
+			return typeId;
 		}
 	}
 	
 	public class InfoTypeAnnotationContainer extends InfoAnnotationContainer
 	{
+		{
+			typeId = TYPEID_TYPE_ANNOTATION;
+		}
+		
 		public int typeRef;
 		
 		public TypePath typePath;
+		
+		public static final int TYPEID_TYPE_ANNOTATION = 2;
 		
 		@Override
 		public void visit(ClassVisitor cv)
@@ -380,6 +413,7 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		{
 			this.name = name;
 			this.desc = desc;
+			this.fullDesc = name + desc;
 		}
 		
 		public int access;
@@ -391,6 +425,8 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		public String signature;
 		
 		public String[] exceptions;
+		
+		public final String fullDesc;
 		
 		public MethodCacheVisitor mcv;
 	}
