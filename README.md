@@ -25,7 +25,6 @@
 
 ### Alpha #16071701
 * [*] 完成基本构建
-* [*] 第一次推送
 
 ## 
 ![底层由ASM5支持](http://asm.ow2.org/images/poweredbyasm.gif)
