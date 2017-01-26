@@ -15,14 +15,26 @@ import static org.kucro3.jam2.util.Jam2Util.*;
 
 public class ClassContext extends ClassVisitor implements Opcodes
 {
+	public ClassContext(int version, int access, String name, String signature, String superName, String[] interfaces, int flags)
+	{
+		this(Version.getASMVersion(), version, access, name, signature, superName, interfaces, flags);
+	}
+	
 	public ClassContext(int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
-		this(Version.getASMVersion(), version, access, name, signature, superName, interfaces);
+		this(Version.getASMVersion(), version, access, name, signature, superName, interfaces,
+				DEFAULT_FLAGS);
 	}
 	
 	public ClassContext(int api, int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
-		super(api, new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES));
+		this(api, version, access, name, signature, superName, interfaces,
+				DEFAULT_FLAGS);
+	}
+	
+	public ClassContext(int api, int version, int access, String name, String signature, String superName, String[] interfaces, int flags)
+	{
+		super(api, new ClassWriter(flags));
 		this.version = version;
 		this.access = access;
 		this.internalName = name;
@@ -285,6 +297,8 @@ public class ClassContext extends ClassVisitor implements Opcodes
 	private final Map<String, FieldContext> mappedFields = new HashMap<>();
 	
 	private final ClassVisitor superBridge = new ClassContextSuperBridge();
+	
+	public static final int DEFAULT_FLAGS = ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS;
 	
 	class ClassContextSuperBridge extends ClassVisitor
 	{

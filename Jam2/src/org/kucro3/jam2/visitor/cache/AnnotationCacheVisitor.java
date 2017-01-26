@@ -6,7 +6,7 @@ import java.util.List;
 import org.kucro3.jam2.util.Version;
 import org.objectweb.asm.AnnotationVisitor;
 
-public class AnnotationCacheVisitor extends AnnotationVisitor implements CacheVisitor<AnnotationVisitor> {
+public class AnnotationCacheVisitor extends AnnotationVisitor implements CacheVisitor {
 	public AnnotationCacheVisitor()
 	{
 		super(Version.getASMVersion());
@@ -62,7 +62,6 @@ public class AnnotationCacheVisitor extends AnnotationVisitor implements CacheVi
 		actions.clear();
 	}
 
-	@Override
 	public void revisit(AnnotationVisitor t) 
 	{
 		for(Action act : actions)

@@ -70,12 +70,6 @@ public class MethodContextImpl extends MethodContext implements AccessableContex
 	}
 	
 	@Override
-	public void visitMaxs(int a, int b)
-	{
-		super.visitMaxs(a, b);
-	}
-	
-	@Override
 	public String getMethodDescriptor()
 	{
 		return descriptor;

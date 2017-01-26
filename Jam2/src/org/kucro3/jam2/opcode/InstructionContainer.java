@@ -47,13 +47,19 @@ public class InstructionContainer extends MethodVisitor implements Opcodes, Clon
 	public void append(Instruction insn)
 	{
 		insns.add(insn);
+		if(nextFrame != null)
+		{
+			insn.preFrame(nextFrame);
+			insn.setLabel(label);
+			nextFrame = null;
+		}
 	}
 	
 	public void appendAndVisit(Instruction insn)
 	{
 		if(super.mv != null)
 			insn.visit(super.mv);
-		insns.add(insn);
+		append(insn);
 	}
 
 	public void remove(int i)
@@ -74,6 +80,13 @@ public class InstructionContainer extends MethodVisitor implements Opcodes, Clon
 	public void clear()
 	{
 		insns.clear();
+	}
+	
+	public Instruction last()
+	{
+		if(insns.size() == 0)
+			return null;
+		return insns.get(insns.size() - 1);
 	}
 	
 	public InstructionContainer filterAndClone(InstructionFilter filter, MethodVisitor mv)
@@ -230,6 +243,14 @@ public class InstructionContainer extends MethodVisitor implements Opcodes, Clon
 	public void visitLabel(Label label)
 	{
 		super.visitLabel(label);
+		this.label = label;
+	}
+	
+	@Override
+	public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack)
+	{
+		super.visitFrame(type, nLocal, local, nStack, stack);
+		setNextFrame(new Frame(type, nLocal, local, nStack, stack));
 	}
 	
 	public Instruction[] toInstructions()
@@ -240,8 +261,17 @@ public class InstructionContainer extends MethodVisitor implements Opcodes, Clon
 	public void revisit(MethodVisitor mv)
 	{
 		for(Instruction insn : insns)
-			insn.visit(mv);
+			insn.visitFully(mv);
 	}
+	
+	public void setNextFrame(Frame frame)
+	{
+		nextFrame = frame;
+	}
+	
+	private Label label;
+	
+	private Frame nextFrame;
 	
 	private final ArrayList<Instruction> insns = new ArrayList<>();
 }

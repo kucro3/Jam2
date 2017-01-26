@@ -8,7 +8,7 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.TypePath;
 
-public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor<FieldVisitor> {
+public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor, FieldRevisitable {
 	public FieldCacheVisitor()
 	{
 		super(Version.getASMVersion());
@@ -27,20 +27,23 @@ public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor<Fiel
 	}
 	
 	@Override
-	public void revisit(FieldVisitor t) 
+	public void revisitAttribute(FieldVisitor fv)
 	{
-		ac.revisit(t);
-		for(Action acv : annos)
-			acv.revisit(t);
-		
-		if(endVisited)
-			t.visitEnd();
+		ac.revisit(fv);
 	}
 	
-	public void revisitOptional(FieldVisitor t)
+	@Override
+	public void revisitAnnotations(FieldVisitor fv)
 	{
-		if(t != null)
-			revisit(t);
+		for(Action act : annos)
+			act.revisit(fv);
+	}
+	
+	@Override
+	public void revisitEnd(FieldVisitor fv)
+	{
+		if(endVisited)
+			fv.visitEnd();
 	}
 	
 	@Override

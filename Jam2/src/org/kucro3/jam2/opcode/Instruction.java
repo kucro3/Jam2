@@ -1,24 +1,21 @@
 package org.kucro3.jam2.opcode;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import org.kucro3.jam2.opcode.Opcode;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.TypePath;
 
 public abstract class Instruction {
 	protected Instruction(Opcode opcode)
 	{
 		this.opcode = opcode;
-		this.metadata = false;
 		
 		if(opcode.getForm() == OpcodeForm.VAR_CST)
 			throw new IllegalArgumentException("Opcode \"" + opcode.getName() + "\" is not supported in ASM");
-	}
-	
-	protected Instruction()
-	{
-		this.opcode = null;
-		this.metadata = true;
 	}
 	
 	public Opcode getOpcode()
@@ -32,16 +29,97 @@ public abstract class Instruction {
 		return opcode.getName();
 	}
 	
-	public boolean isMetadata()
+	public void preFrame(Frame frame)
 	{
-		return metadata;
+		this.frame = frame;
+	}
+	
+	public void setLabel(Label label)
+	{
+		this.label =  label;
+	}
+	
+	public void addInsnAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
+	{
+		insnAnnos.add(new InsnAnnotation(typeRef, typePath, desc, visible));
+	}
+	
+	public void addInsnAnnotation(InsnAnnotation ia)
+	{
+		insnAnnos.add(ia);
+	}
+	
+	public final void visitFully(MethodVisitor mv)
+	{
+		if(frame != null)
+			frame.visit(mv);
+		visit(mv);
+		if(label != null)
+			mv.visitLabel(label);
+		for(InsnAnnotation ia : insnAnnos)
+			ia.visit(mv);
 	}
 	
 	public abstract void visit(MethodVisitor mv);
 	
 	private final Opcode opcode;
 	
-	private final boolean metadata;
+	private Frame frame;
+	
+	private final List<InsnAnnotation> insnAnnos = new ArrayList<>();
+	
+	private Label label;
+	
+	public static class Frame
+	{
+		public Frame(int type, int nLocal, Object[] local, int nStack, Object[] stack)
+		{
+			this.type = type;
+			this.nLocal = nLocal;
+			this.local = local;
+			this.nStack = nStack;
+			this.stack = stack;
+		}
+		
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitFrame(type, nLocal, local, nStack, stack);
+		}
+		
+		protected int type;
+		
+		protected int nLocal;
+		
+		protected Object[] local;
+		
+		protected int nStack;
+		
+		protected Object[] stack;
+	}
+	
+	public static class InsnAnnotation
+	{
+		public InsnAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
+		{
+			this.typeRef = typeRef;
+			this.typePath = typePath;
+			this.desc = desc;
+			this.visible = visible;
+		}
+		
+		public void visit(MethodVisitor mv)
+		{
+			mv.visitInsnAnnotation(typeRef, typePath, desc, visible);
+		}
+		
+		protected int typeRef;
+		
+		protected TypePath typePath;
+		
+		protected String desc;
+		
+		protected boolean visible;
+	}
 	
 	public static class InstructionInt extends Instruction
 	{

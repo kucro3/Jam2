@@ -18,7 +18,7 @@ public class Version {
 		return API;
 	}
 	
-	private static final int API = 327680;
+	private static final int API = Opcodes.ASM5;
 	
 	static {
 		int topClassVersion = Opcodes.V1_8;

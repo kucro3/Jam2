@@ -13,6 +13,12 @@ public class ClassContextVisitor extends ClassVisitor {
 		super(api);
 	}
 	
+	public ClassContextVisitor(int api, int flags)
+	{
+		super(api);
+		this.flags = flags;
+	}
+	
 	public ClassContextVisitor()
 	{
 		super(Version.getASMVersion());
@@ -26,7 +32,7 @@ public class ClassContextVisitor extends ClassVisitor {
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
-		this.ctx = new ClassContext(version, access, name, signature, superName, interfaces);
+		this.ctx = new ClassContext(version, access, name, signature, superName, interfaces, flags);
 	}
 	
 	@Override
@@ -82,6 +88,8 @@ public class ClassContextVisitor extends ClassVisitor {
 	{
 		return ctx.visitTypeAnnotation(typeRef, typePath, desc, visible);
 	}
+	
+	private int flags = ClassContext.DEFAULT_FLAGS;
 	
 	private ClassContext ctx;
 }
