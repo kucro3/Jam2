@@ -6,11 +6,17 @@
  
 ## 更新日志 
 
+### Preview #17012603
+* [#] org.kucro3.jam2.visitor.cache
+ > (#) ClassCacheVisitor
+ 
+ >> 将对于可访问性的内容的缓存过程暴露于其子类,提高可扩展性
+ 
 ### Preview #17012602
-* [*] org.kucro3.jam2.visior.cache
+* [#] org.kucro3.jam2.visitor.cache
  > (+) ContainerHelper
  
-* [*] org.kucro3.jam2.opcode
+* [#] org.kucro3.jam2.opcode
 
  > + 移除待定内容 
  
@@ -19,7 +25,7 @@
  >> (-) VMSimluator
  
 ### Preview #17012601 
-* [*] 结构调整
+* [#] 结构调整
 * [+] org.kucro3.jam2.visitor.cache
  
  > + 已完成所有功能性内容
@@ -27,11 +33,11 @@
 * [-] org.kucro3.jam2.jar
  
 ### Alpha #16102301
-* [*] 结构调整 
+* [#] 结构调整 
 * [-] org.kucro3.jam2.injection
 
 ### Alpha #16071701
-* [*] 完成基本构建
+* [#] 完成基本构建
 
 ## 
 ![底层由ASM5支持](http://asm.ow2.org/images/poweredbyasm.gif)
