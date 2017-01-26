@@ -28,7 +28,14 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	@Override
 	public void clear() 
 	{
-		
+		attrs.clear();
+		annos.clear();
+		fields.clear();
+		methods.clear();
+		endVisited = false;
+		outerClass = null;
+		innerClasses.clear();
+		source = null;
 	}
 	
 	@Override
