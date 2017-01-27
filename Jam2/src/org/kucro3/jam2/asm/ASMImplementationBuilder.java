@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.MethodContext;
+import org.kucro3.jam2.util.Version;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
@@ -34,9 +35,9 @@ public class ASMImplementationBuilder<T> extends ASMCodeBuilderRoot<ASMImplement
 		String superClass;
 		ClassContext ctx;
 		if(implClz.isInterface())
-			ctx = new ClassContext(V1_8, ACC_PUBLIC, name, null, superClass = "java/lang/Object", new String[] {Type.getInternalName(implClz)});
+			ctx = new ClassContext(Version.getClassVersion(), ACC_PUBLIC, name, null, superClass = "java/lang/Object", new String[] {Type.getInternalName(implClz)});
 		else
-			ctx = new ClassContext(V1_8, ACC_PUBLIC, name, null, superClass = Type.getInternalName(implClz), null);
+			ctx = new ClassContext(Version.getClassVersion(), ACC_PUBLIC, name, null, superClass = Type.getInternalName(implClz), null);
 		MethodContext mctx = ctx.addMethod(MethodContext.newContext(mthd, ACC_PUBLIC));
 		Jam2Util.pushEmptyConstructor(ctx, ACC_PUBLIC, superClass);
 		return new ASMImplementationBuilder<T>(ctx, mctx, implClz);

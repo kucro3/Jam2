@@ -404,6 +404,8 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	public static MethodVisitor pushFunctionalLambda(ClassVisitor cw, String internalName, MethodVisitor mv, LambdaContext ctx,
 			boolean reserveMethodVisitor, String lambdaFunctionName)
 	{
+		assert Version.getClassVersion() > V1_6 : "Lamdba is not supported in VM versioned under 7";
+		
 		MethodVisitor rt;
 		
 		if((rt = ctx.mv) == null)
@@ -445,6 +447,8 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	private static void _pushFunctionReference$(MethodVisitor mv, String ownerInternalName, String methodName, LambdaContext ctx, 
 			int handleType, boolean ignoreHandle)
 	{
+		assert Version.getClassVersion() > V1_7 : "Lambda depending metafactory is not supported in VM versioned under 8";
+		
 		Type implType = Type.getMethodType(Type.getType(ctx.getReturnType()), _toTypes(ctx.getArgumentDescriptors()));
 		mv.visitInvokeDynamicInsn(ctx.getFunctionName(),
 				_toDescriptor(Type.getObjectType(ctx.getTemplate()).getDescriptor(), null, ""),

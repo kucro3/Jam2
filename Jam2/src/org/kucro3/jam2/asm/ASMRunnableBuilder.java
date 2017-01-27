@@ -2,12 +2,13 @@ package org.kucro3.jam2.asm;
 
 import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.Jam2Util;
+import org.kucro3.jam2.util.Version;
 import org.objectweb.asm.Opcodes;
 
 public class ASMRunnableBuilder extends ASMCodeBuilderRoot<ASMRunnableBuilder> implements Opcodes {
 	public static ASMRunnableBuilder newBuilder()
 	{
-		ClassContext ctx = new ClassContext(V1_8, ACC_PUBLIC, 
+		ClassContext ctx = new ClassContext(Version.getClassVersion(), ACC_PUBLIC, 
 				"org/kucro3/jam2/asm/ASMRunnable_" + Jam2Util.generateUUIDForClassName(),
 				null, "java/lang/Object",  new String[] {"java/lang/Runnable"});
 		return new ASMRunnableBuilder(ctx, "run", "V", null);

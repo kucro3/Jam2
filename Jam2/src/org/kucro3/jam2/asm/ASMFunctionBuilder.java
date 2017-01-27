@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.MethodContext;
+import org.kucro3.jam2.util.Version;
 import org.objectweb.asm.MethodVisitor;
 
 public class ASMFunctionBuilder extends ASMCodeBuilderRoot<ASMFunctionBuilder> {
@@ -30,7 +31,7 @@ public class ASMFunctionBuilder extends ASMCodeBuilderRoot<ASMFunctionBuilder> {
 	
 	static ASMFunctionBuilder newBuilder(Class<?>[] arguments, String[] argumentDescriptors)
 	{
-		ClassContext ctx = new ClassContext(V1_8, ACC_PUBLIC, "org/kucro3/jam2/asm/ASMFunction_" + Jam2Util.generateUUIDForClassName(),
+		ClassContext ctx = new ClassContext(Version.getClassVersion(), ACC_PUBLIC, "org/kucro3/jam2/asm/ASMFunction_" + Jam2Util.generateUUIDForClassName(),
 				null, "org/kucro3/jam2/asm/ASMFunction", null);
 		Jam2Util.pushEmptyConstructor(ctx, ACC_PUBLIC, "org/kucro3/jam2/asm/ASMFunction");
 		MethodContext mctx = ctx.addMethod(
