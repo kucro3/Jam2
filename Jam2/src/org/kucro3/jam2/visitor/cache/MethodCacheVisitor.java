@@ -1,5 +1,6 @@
 package org.kucro3.jam2.visitor.cache;
 
+import org.kucro3.jam2.util.annotation.AnnotationContainer;
 import org.objectweb.asm.MethodVisitor;
 
 public class MethodCacheVisitor extends InstructionRegionVisitor implements CacheVisitor {
@@ -11,5 +12,10 @@ public class MethodCacheVisitor extends InstructionRegionVisitor implements Cach
 	public MethodCacheVisitor(MethodVisitor mv)
 	{
 		super(mv);
+	}
+	
+	public AnnotationContainer getAnnotationContainer()
+	{
+		return super.annotations;
 	}
 }

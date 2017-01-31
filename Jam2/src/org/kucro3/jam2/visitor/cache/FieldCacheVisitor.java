@@ -80,6 +80,11 @@ public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor, Fie
 		endVisited = true;
 	}
 	
+	public AnnotationContainer getAnnotationContainer()
+	{
+		return annos;
+	}
+	
 	protected final AnnotationContainer annos = new AnnotationContainer();
 	
 	protected boolean endVisited;
