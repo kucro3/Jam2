@@ -212,6 +212,11 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		fields.clear();
 	}
 	
+	public AnnotationContainer getAnnotationContainer()
+	{
+		return annos;
+	}
+	
 	public MethodContainer getMethod(String name, String returnType, String[] arguments)
 	{
 		return getMethod(Jam2Util.toDescriptor(name, returnType, arguments));
@@ -235,6 +240,12 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	public void clearMethods()
 	{
 		methods.clear();
+	}
+	
+	@Override
+	public void visitEnd()
+	{
+		endVisited = true;
 	}
 	
 	@Override
