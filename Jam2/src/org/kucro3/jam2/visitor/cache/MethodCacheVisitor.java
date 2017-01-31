@@ -18,4 +18,9 @@ public class MethodCacheVisitor extends InstructionRegionVisitor implements Cach
 	{
 		return super.annotations;
 	}
+	
+	public AnnotationContainer getLocalAnnotationContainer()
+	{
+		return super.localAnnotations;
+	}
 }
