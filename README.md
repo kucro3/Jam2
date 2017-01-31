@@ -6,8 +6,12 @@
  
 ## 更新日志 
 
+### Preview #17013101
+* [#] 改进对 Annotation 的访问方法
+* [+] org.kucro3.jam2.util.annotation
+
 ### Preview #17012604
-* 可靠性更新
+* [#] 可靠性更新
 
 ### Preview #17012603
 * [#] org.kucro3.jam2.visitor.cache
