@@ -12,7 +12,6 @@ public final class RevisitationHelper {
 	public static void revisit(MethodRevisitable mr, MethodVisitor mv)
 	{
 		mr.revisitParameters(mv);
-		mr.revisitAnnotationDefault(mv);
 		mr.revisitAnnotations(mv);
 		mr.revisitAttributes(mv);
 		mr.revisitInstructions(mv);

@@ -4,7 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.kucro3.jam2.opcode.Instruction.Frame;
-import org.kucro3.jam2.opcode.Instruction.InsnAnnotation;
+import org.kucro3.jam2.util.annotation.Annotation;
+import org.kucro3.jam2.util.annotation.Annotation.Value;
+import org.kucro3.jam2.util.annotation.AnnotationContainer;
+import org.kucro3.jam2.util.annotation.AnnotationValueAdapterVisitor;
+import org.kucro3.jam2.util.annotation.InstructionAnnotation;
+import org.kucro3.jam2.util.annotation.LocalVariableAnnotation;
+import org.kucro3.jam2.util.annotation.ParameterAnnotation;
+import org.kucro3.jam2.util.annotation.TypeAnnotation;
 import org.kucro3.jam2.visitor.cache.AnnotationCacheVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
@@ -32,14 +39,11 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 	@Override
 	public AnnotationVisitor visitInsnAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
 	{
-		AnnotationCacheVisitor acv = newVisitInsnAnnotation(super.visitInsnAnnotation(typeRef, typePath, desc, visible));
-		super.container.last().addInsnAnnotation(new CachedInsnAnnotation(typeRef, typePath, desc, visible, acv));
+		AnnotationVisitor av = super.visitInsnAnnotation(typeRef, typePath, desc, visible);
+		InstructionAnnotation ia = new InstructionAnnotation(typeRef, typePath, desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, ia);
+		super.container.last().addInsnAnnotation(ia);
 		return acv;
-	}
-	
-	protected AnnotationCacheVisitor newVisitInsnAnnotation(AnnotationVisitor av)
-	{
-		return new AnnotationCacheVisitor(av);
 	}
 	
 	@Override
@@ -54,9 +58,9 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 				Label[] end, int[] index, String desc, boolean visible)
 	{
 		AnnotationVisitor av = super.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, desc, visible);
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		LocalVariableAnnotation lva = new LocalVariableAnnotation(typeRef, typePath, start, end, index, desc, visible, acv);
-		localAnnotations.add(lva);
+		LocalVariableAnnotation lva = new LocalVariableAnnotation(typeRef, typePath, start, end, index, desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, lva);
+		localAnnotations.putAnnotation(lva);
 		return acv;
 	}
 	
@@ -78,17 +82,19 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 	public AnnotationVisitor visitAnnotationDefault()
 	{
 		AnnotationVisitor av = super.visitAnnotationDefault();
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		return annotationDefault = acv;
+		Value value = new Value(null);
+		AnnotationValueAdapterVisitor avav = new AnnotationValueAdapterVisitor(av, value);
+		annotations.setAnnotationDefault(value);
+		return avav;
 	}
 	
 	@Override
 	public AnnotationVisitor visitAnnotation(String desc, boolean visible)
 	{
 		AnnotationVisitor av = super.visitAnnotation(desc, visible);
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		Annotation anno = new Annotation(desc, visible, acv);
-		annotations.add(anno);
+		Annotation anno = new Annotation(desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, anno);
+		annotations.putAnnotation(anno);
 		return acv;
 	}
 	
@@ -96,9 +102,9 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 	public AnnotationVisitor visitParameterAnnotation(int index, String desc, boolean visible)
 	{
 		AnnotationVisitor av = super.visitParameterAnnotation(index, desc, visible);
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		ParameterAnnotation pa = new ParameterAnnotation(index, desc, visible, acv);
-		annotations.add(pa);
+		ParameterAnnotation pa = new ParameterAnnotation(index, desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, pa);
+		annotations.putAnnotation(pa);
 		return acv;
 	}
 	
@@ -106,9 +112,9 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 	public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
 	{
 		AnnotationVisitor av = super.visitTypeAnnotation(typeRef, typePath, desc, visible);
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		TypeAnnotation ta = new TypeAnnotation(typeRef, typePath, desc, visible, acv);
-		annotations.add(ta);
+		TypeAnnotation ta = new TypeAnnotation(typeRef, typePath, desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, ta);
+		annotations.putAnnotation(ta);
 		return acv;
 	}
 	
@@ -143,22 +149,13 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 	@Override
 	public void revisitLocalAnnotations(MethodVisitor mv)
 	{
-		for(LocalVariableAnnotation localAnnotation : localAnnotations)
-			localAnnotation.visit(mv);
-	}
-	
-	@Override
-	public void revisitAnnotationDefault(MethodVisitor mv)
-	{
-		if(annotationDefault != null)
-			annotationDefault.revisitOptional(mv.visitAnnotationDefault());
+		localAnnotations.visit(mv);
 	}
 	
 	@Override
 	public void revisitAnnotations(MethodVisitor mv)
 	{
-		for(Annotation annotation : annotations)
-			annotation.visit(mv);
+		annotations.visit(mv);
 	}
 	
 	@Override
@@ -174,9 +171,8 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 		params.clear();
 		lines.clear();
 		locals.clear();
-		localAnnotations.clear();
-		annotations.clear();
-		annotationDefault =  null;
+		localAnnotations.clearAnnotations();
+		annotations.clearAnnotations();
 	}
 	
 	protected final List<Parameter> params = new ArrayList<>();
@@ -185,31 +181,11 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 	
 	protected final List<LocalVariable> locals = new ArrayList<>();
 	
-	protected final List<LocalVariableAnnotation> localAnnotations = new ArrayList<>();
+	protected final AnnotationContainer localAnnotations = new AnnotationContainer();
 	
-	protected final List<Annotation> annotations = new ArrayList<>();
+	protected final AnnotationContainer annotations = new AnnotationContainer();
 	
 	protected final AttributeCache attributes = new AttributeCache();
-	
-	protected AnnotationCacheVisitor annotationDefault;
-	
-	public class CachedInsnAnnotation extends InsnAnnotation
-	{
-		public CachedInsnAnnotation(int typeRef, TypePath typePath, String desc, boolean visible,
-				AnnotationCacheVisitor acv)
-		{
-			super(typeRef, typePath, desc, visible);
-			this.acv = acv;
-		}
-		
-		@Override
-		public void visit(MethodVisitor mv) 
-		{
-			acv.revisitOptional(mv.visitInsnAnnotation(typeRef, typePath, desc, visible));
-		}
-		
-		protected final AnnotationCacheVisitor acv;
-	}
 	
 	public class LocalVariable
 	{
@@ -239,43 +215,6 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 		protected final Label end;
 		
 		protected final int index;
-	}
-	
-	public class LocalVariableAnnotation
-	{
-		public LocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start, Label[] end,
-				int[] index, String desc, boolean visible, AnnotationCacheVisitor acv)
-		{
-			this.typeRef = typeRef;
-			this.typePath = typePath;
-			this.start = start;
-			this.end = end;
-			this.index = index;
-			this.desc = desc;
-			this.visible = visible;
-			this.acv = acv;
-		}
-		
-		public void visit(MethodVisitor mv)
-		{
-			acv.revisitOptional(mv.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, desc, visible));
-		}
-		
-		protected final int typeRef;
-		
-		protected final TypePath typePath;
-		
-		protected final Label[] start;
-		
-		protected final Label[] end;
-		
-		protected final int[] index;
-		
-		protected final String desc;
-		
-		protected final boolean visible;
-		
-		protected final AnnotationCacheVisitor acv;
 	}
 	
 	public class LineNumber
@@ -312,63 +251,5 @@ public class InstructionRegionVisitor extends InstructionFlowVisitor {
 		protected final String name;
 		
 		protected final int access;
-	}
-	
-	public class Annotation
-	{
-		public Annotation(String desc, boolean visible, AnnotationCacheVisitor acv)
-		{
-			this.desc = desc;
-			this.visible = visible;
-			this.acv = acv;
-		}
-		
-		public void visit(MethodVisitor mv)
-		{
-			acv.revisitOptional(mv.visitAnnotation(desc, visible));
-		}
-		
-		protected final String desc;
-		
-		protected final boolean visible;
-	
-		protected final AnnotationCacheVisitor acv;
-	}
-	
-	public class ParameterAnnotation extends Annotation
-	{
-		public ParameterAnnotation(int parameter, String desc, boolean visible, AnnotationCacheVisitor acv)
-		{
-			super(desc, visible, acv);
-			this.parameter = parameter;
-		}
-		
-		@Override
-		public void visit(MethodVisitor mv)
-		{
-			acv.revisitOptional(mv.visitParameterAnnotation(parameter, desc, visible));
-		}
-		
-		protected final int parameter;
-	}
-	
-	public class TypeAnnotation extends Annotation
-	{
-		public TypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible, AnnotationCacheVisitor acv)
-		{
-			super(desc, visible, acv);
-			this.typeRef = typeRef;
-			this.typePath = typePath;
-		}
-		
-		@Override
-		public void visit(MethodVisitor mv)
-		{
-			acv.revisitOptional(mv.visitTypeAnnotation(typeRef, typePath, desc, visible));
-		}
-		
-		protected final int typeRef;
-		
-		protected final TypePath typePath;
 	}
 }

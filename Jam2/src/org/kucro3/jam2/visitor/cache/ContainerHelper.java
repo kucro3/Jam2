@@ -2,11 +2,9 @@ package org.kucro3.jam2.visitor.cache;
 
 import org.kucro3.jam2.visitor.cache.ClassCacheVisitor.ClassEssentialsContainer;
 import org.kucro3.jam2.visitor.cache.ClassCacheVisitor.FieldContainer;
-import org.kucro3.jam2.visitor.cache.ClassCacheVisitor.InfoAnnotationContainer;
 import org.kucro3.jam2.visitor.cache.ClassCacheVisitor.InfoInnerClassContainer;
 import org.kucro3.jam2.visitor.cache.ClassCacheVisitor.InfoOuterClassContainer;
 import org.kucro3.jam2.visitor.cache.ClassCacheVisitor.InfoSourceContainer;
-import org.kucro3.jam2.visitor.cache.ClassCacheVisitor.InfoTypeAnnotationContainer;
 import org.kucro3.jam2.visitor.cache.ClassCacheVisitor.MethodContainer;
 
 public class ContainerHelper {
@@ -58,20 +56,6 @@ public class ContainerHelper {
 		return cpy;
 	}
 	
-	public static void copyTo(InfoAnnotationContainer src, InfoAnnotationContainer dst)
-	{
-		dst.acv = src.acv;
-		dst.desc = src.desc;
-		dst.visible = src.visible;
-	}
-	
-	public static InfoAnnotationContainer copyFully(ClassCacheVisitor caller, InfoAnnotationContainer src)
-	{
-		InfoAnnotationContainer cpy = caller.new InfoAnnotationContainer();
-		copyTo(src, cpy);
-		return cpy;
-	}
-	
 	public static void copyTo(InfoInnerClassContainer src, InfoInnerClassContainer dst)
 	{
 		dst.access = src.access;
@@ -110,20 +94,6 @@ public class ContainerHelper {
 	public static InfoSourceContainer copyFully(ClassCacheVisitor caller, InfoSourceContainer src)
 	{
 		InfoSourceContainer cpy = caller.new InfoSourceContainer();
-		copyTo(src, cpy);
-		return cpy;
-	}
-	
-	public static void copyTo(InfoTypeAnnotationContainer src, InfoTypeAnnotationContainer dst)
-	{
-		copyTo((InfoAnnotationContainer) src, (InfoAnnotationContainer) dst);
-		dst.typeRef = src.typeRef;
-		dst.typePath = src.typePath;
-	}
-	
-	public static InfoTypeAnnotationContainer copyFully(ClassCacheVisitor caller, InfoTypeAnnotationContainer src)
-	{
-		InfoTypeAnnotationContainer cpy = caller.new InfoTypeAnnotationContainer();
 		copyTo(src, cpy);
 		return cpy;
 	}

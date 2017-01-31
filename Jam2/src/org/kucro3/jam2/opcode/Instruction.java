@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.kucro3.jam2.opcode.Opcode;
+import org.kucro3.jam2.util.annotation.InstructionAnnotation;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -41,10 +42,10 @@ public abstract class Instruction {
 	
 	public void addInsnAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
 	{
-		insnAnnos.add(new InsnAnnotation(typeRef, typePath, desc, visible));
+		insnAnnos.add(new InstructionAnnotation(typeRef, typePath, desc, visible));
 	}
 	
-	public void addInsnAnnotation(InsnAnnotation ia)
+	public void addInsnAnnotation(InstructionAnnotation ia)
 	{
 		insnAnnos.add(ia);
 	}
@@ -56,8 +57,8 @@ public abstract class Instruction {
 		visit(mv);
 		if(label != null)
 			mv.visitLabel(label);
-		for(InsnAnnotation ia : insnAnnos)
-			ia.visit(mv);
+		for(InstructionAnnotation ia : insnAnnos)
+			ia.visitOn(mv);
 	}
 	
 	public abstract void visit(MethodVisitor mv);
@@ -66,7 +67,7 @@ public abstract class Instruction {
 	
 	private Frame frame;
 	
-	private final List<InsnAnnotation> insnAnnos = new ArrayList<>();
+	private final List<InstructionAnnotation> insnAnnos = new ArrayList<>();
 	
 	private Label label;
 	
@@ -95,30 +96,6 @@ public abstract class Instruction {
 		protected int nStack;
 		
 		protected Object[] stack;
-	}
-	
-	public static class InsnAnnotation
-	{
-		public InsnAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
-		{
-			this.typeRef = typeRef;
-			this.typePath = typePath;
-			this.desc = desc;
-			this.visible = visible;
-		}
-		
-		public void visit(MethodVisitor mv)
-		{
-			mv.visitInsnAnnotation(typeRef, typePath, desc, visible);
-		}
-		
-		protected int typeRef;
-		
-		protected TypePath typePath;
-		
-		protected String desc;
-		
-		protected boolean visible;
 	}
 	
 	public static class InstructionInt extends Instruction

@@ -1,8 +1,9 @@
 package org.kucro3.jam2.visitor.cache;
 
-import java.util.LinkedList;
-
 import org.kucro3.jam2.util.Version;
+import org.kucro3.jam2.util.annotation.Annotation;
+import org.kucro3.jam2.util.annotation.AnnotationContainer;
+import org.kucro3.jam2.util.annotation.TypeAnnotation;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.FieldVisitor;
@@ -35,8 +36,7 @@ public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor, Fie
 	@Override
 	public void revisitAnnotations(FieldVisitor fv)
 	{
-		for(Action act : annos)
-			act.revisit(fv);
+		annos.visit(fv);
 	}
 	
 	@Override
@@ -50,8 +50,9 @@ public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor, Fie
 	public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
 	{
 		AnnotationVisitor av = super.visitTypeAnnotation(typeRef, typePath, desc, visible);
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		annos.add(new ActionVisitTypeAnnotation(typeRef, typePath, desc, visible, acv));
+		TypeAnnotation anno = new TypeAnnotation(typeRef, typePath, desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, anno);
+		annos.putAnnotation(anno);
 		return acv;
 	}
 	
@@ -59,8 +60,9 @@ public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor, Fie
 	public AnnotationVisitor visitAnnotation(String desc, boolean visible)
 	{
 		AnnotationVisitor av = super.visitAnnotation(desc, visible);
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		annos.add(new ActionVisitAnnotation(desc, visible, acv));
+		Annotation anno = new Annotation(desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, anno);
+		annos.putAnnotation(anno);
 		return acv;
 	}
 	
@@ -78,9 +80,9 @@ public class FieldCacheVisitor extends FieldVisitor implements CacheVisitor, Fie
 		endVisited = true;
 	}
 	
-	final LinkedList<Action> annos = new LinkedList<>();
+	protected final AnnotationContainer annos = new AnnotationContainer();
 	
-	boolean endVisited;
+	protected boolean endVisited;
 	
-	private final AttributeCache ac = new AttributeCache();
+	protected final AttributeCache ac = new AttributeCache();
 }

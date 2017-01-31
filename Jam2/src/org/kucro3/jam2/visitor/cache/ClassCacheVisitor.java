@@ -7,6 +7,9 @@ import java.util.HashMap;
 
 import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.Version;
+import org.kucro3.jam2.util.annotation.Annotation;
+import org.kucro3.jam2.util.annotation.AnnotationContainer;
+import org.kucro3.jam2.util.annotation.TypeAnnotation;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
@@ -29,7 +32,7 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	public void clear() 
 	{
 		attrs.clear();
-		annos.clear();
+		annos.clearAnnotations();
 		fields.clear();
 		methods.clear();
 		endVisited = false;
@@ -89,12 +92,9 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	public AnnotationVisitor visitAnnotation(String desc, boolean visible)
 	{
 		AnnotationVisitor av = super.visitAnnotation(desc, visible);
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		InfoAnnotationContainer iac = new InfoAnnotationContainer();
-		iac.desc = desc;
-		iac.visible = visible;
-		iac.acv = acv;
-		cacheAnnotation(iac);
+		Annotation anno = new Annotation(desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, anno);
+		annos.putAnnotation(anno);
 		return acv;
 	}
 	
@@ -102,59 +102,49 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
 	{
 		AnnotationVisitor av = super.visitTypeAnnotation(typeRef, typePath, desc, visible);
-		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av);
-		InfoTypeAnnotationContainer itac = new InfoTypeAnnotationContainer();
-		itac.typeRef = typeRef;
-		itac.typePath = typePath;
-		itac.desc = desc;
-		itac.visible = visible;
-		itac.acv = acv;
-		cacheAnnotation(itac);
+		TypeAnnotation anno = new TypeAnnotation(typeRef, typePath, desc, visible);
+		AnnotationCacheVisitor acv = new AnnotationCacheVisitor(av, anno);
+		annos.putAnnotation(anno);
 		return acv;
-	}
-	
-	protected void cacheAnnotation(InfoAnnotationContainer iac)
-	{
-		annos.add(iac);
 	}
 	
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value)
 	{
 		FieldVisitor fv = super.visitField(access, name, desc, signature, value);
-		FieldCacheVisitor fcv = new FieldCacheVisitor(fv);
+		FieldCacheVisitor fcv = newFieldCache(fv);
 		FieldContainer fc = new FieldContainer(name);
 		fc.access = access;
 		fc.desc = desc;
 		fc.signature = signature;
 		fc.value = value;
 		fc.fcv = fcv;
-		cacheField(fc);
+		fields.put(fc.name, fc);
 		return fcv;
 	}
 	
-	protected void cacheField(FieldContainer fc)
+	protected FieldCacheVisitor newFieldCache(FieldVisitor fv)
 	{
-		fields.put(fc.name, fc);
+		return new FieldCacheVisitor(fv);
 	}
 	
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions)
 	{
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-		MethodCacheVisitor mcv = new MethodCacheVisitor(mv);
+		MethodCacheVisitor mcv = newMethodCache(mv);
 		MethodContainer mc = new MethodContainer(name, desc);
 		mc.access = access;
 		mc.signature = signature;
 		mc.exceptions = exceptions;
 		mc.mcv = mcv;
-		cacheMethod(mc);
+		methods.put(mc.fullDesc, mc);
 		return mcv;
 	}
 	
-	protected void cacheMethod(MethodContainer mc)
+	protected MethodCacheVisitor newMethodCache(MethodVisitor mv)
 	{
-		methods.put(mc.fullDesc, mc);
+		return new MethodCacheVisitor(mv);
 	}
 	
 	public ClassEssentialsContainer getEssentials()
@@ -199,7 +189,7 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	
 	public void clearAnnotations()
 	{
-		annos.clear();
+		annos.clearAnnotations();
 	}
 	
 	public void clearAttributes()
@@ -270,8 +260,7 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	@Override
 	public void revisitAnnotations(ClassVisitor cv)
 	{
-		for(InfoAnnotationContainer iac : annos)
-			iac.visit(cv);
+		annos.visit(cv);
 	}
 	
 	@Override
@@ -320,7 +309,7 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	
 	protected boolean endVisited;
 	
-	protected final List<InfoAnnotationContainer> annos = new ArrayList<>();
+	protected final AnnotationContainer annos = new AnnotationContainer();
 	
 	protected final Map<String, FieldContainer> fields = new HashMap<>();
 	
@@ -366,52 +355,6 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		public String innerName;
 		
 		public int access;
-	}
-	
-	public class InfoAnnotationContainer
-	{
-		{
-			typeId = TYPEID_ANNOTATION;
-		}
-		
-		protected int typeId;
-		
-		public String desc;
-		
-		public boolean visible;
-		
-		public AnnotationCacheVisitor acv;
-		
-		public static final int TYPEID_ANNOTATION = 1;
-		
-		public void visit(ClassVisitor cv)
-		{
-			acv.revisitOptional(cv.visitAnnotation(desc, visible));
-		}
-		
-		public final int typeId()
-		{
-			return typeId;
-		}
-	}
-	
-	public class InfoTypeAnnotationContainer extends InfoAnnotationContainer
-	{
-		{
-			typeId = TYPEID_TYPE_ANNOTATION;
-		}
-		
-		public int typeRef;
-		
-		public TypePath typePath;
-		
-		public static final int TYPEID_TYPE_ANNOTATION = 2;
-		
-		@Override
-		public void visit(ClassVisitor cv)
-		{
-			acv.revisitOptional(cv.visitTypeAnnotation(typeRef, typePath, desc, visible));
-		}
 	}
 	
 	public class MethodContainer
