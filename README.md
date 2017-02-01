@@ -6,6 +6,9 @@
  
 ## 更新日志 
 
+### Preview #17013102
+* [#] 回滚#17012603的更改
+
 ### Preview #17013101
 * [#] 改进对 Annotation 的访问方法
 * [+] org.kucro3.jam2.util.annotation
@@ -14,10 +17,7 @@
 * [#] 可靠性更新
 
 ### Preview #17012603
-* [#] org.kucro3.jam2.visitor.cache
- > (#) ClassCacheVisitor
- 
- >> 将对于可访问性的内容的缓存过程暴露于其子类,提高可扩展性
+* [#] 扩展性变更
  
 ### Preview #17012602
 * [#] org.kucro3.jam2.visitor.cache
