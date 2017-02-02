@@ -111,6 +111,11 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value)
 	{
+		return newField(access, name, desc, signature, value).fcv;
+	}
+	
+	public FieldContainer newField(int access, String name, String desc, String signature, Object value)
+	{
 		FieldVisitor fv = super.visitField(access, name, desc, signature, value);
 		FieldCacheVisitor fcv = new FieldCacheVisitor(fv);
 		FieldContainer fc = new FieldContainer(name);
@@ -120,11 +125,16 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		fc.value = value;
 		fc.fcv = fcv;
 		fields.put(fc.name, fc);
-		return fcv;
+		return fc;
 	}
 	
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions)
+	{
+		return newMethod(access, name, desc, signature, exceptions).mcv;
+	}
+	
+	public MethodContainer newMethod(int access, String name, String desc, String signature, String[] exceptions)
 	{
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 		MethodCacheVisitor mcv = new MethodCacheVisitor(mv);
@@ -134,7 +144,7 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		mc.exceptions = exceptions;
 		mc.mcv = mcv;
 		methods.put(mc.fullDesc, mc);
-		return mcv;
+		return mc;
 	}
 	
 	public ClassEssentialsContainer getEssentials()
