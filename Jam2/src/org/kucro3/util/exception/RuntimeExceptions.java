@@ -1,4 +1,4 @@
-package org.kucro3.util;
+package org.kucro3.util.exception;
 
 public class RuntimeExceptions {
 	public static RuntimeException shouldNotReachHere()
