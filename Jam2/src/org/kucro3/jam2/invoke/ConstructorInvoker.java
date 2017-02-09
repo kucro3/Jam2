@@ -5,6 +5,8 @@ import java.lang.reflect.Modifier;
 
 import org.kucro3.jam2.invoke.ConstructorInvokerLambdaImpl.LambdaInvocation;
 import org.kucro3.jam2.util.*;
+import org.kucro3.jam2.util.Contexts;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
 import static org.kucro3.jam2.util.Jam2Util.toConstructorDescriptor;
@@ -23,16 +25,20 @@ public abstract class ConstructorInvoker implements Opcodes {
 		if(!Modifier.isPublic(constructor.getModifiers()))
 			throw new IllegalArgumentException("constructor unaccessable");
 		
-		ClassContext ctx = new ClassContext(V1_8, ACC_PUBLIC, 
-				"org/kucro3/jam2/invoke/ConstructorInvoker$" + Jam2Util.generateUUIDForClassName(),
-				null, "java/lang/Object", new String[] {"org/kucro3/jam2/invoke/ConstructorInvokerLambdaImpl$LambdaInvocation"});
+		String name = "org/kucro3/jam2/invoke/ConstructorInvoker$" + Jam2Util.generateUUIDForClassName();
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+		cw.visit(V1_8, ACC_PUBLIC, 
+				name,
+				null, 
+				"java/lang/Object", 
+				new String[] {"org/kucro3/jam2/invoke/ConstructorInvokerLambdaImpl$LambdaInvocation"});
 		
-		Jam2Util.pushEmptyConstructor(ctx, ACC_PUBLIC, Object.class);
-		Jam2Util.pushNewInstance(ctx, ACC_PUBLIC | ACC_VARARGS, "newInstance", ConstructorContext.newContext(constructor), true, true);
+		Jam2Util.pushEmptyConstructor(cw, ACC_PUBLIC, Object.class);
+		Jam2Util.pushNewInstance(cw, ACC_PUBLIC | ACC_VARARGS, "newInstance", Contexts.newMethodConstant(constructor), true, true);
 		
 		LambdaInvocation invocation;
 		try {
-			invocation = (LambdaInvocation) ctx.newClass().newInstance();
+			invocation = (LambdaInvocation) Jam2Util.newClass(name.replace('/', '.'), cw).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);

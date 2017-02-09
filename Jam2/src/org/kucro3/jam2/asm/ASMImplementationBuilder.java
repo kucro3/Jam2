@@ -4,10 +4,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.Jam2Util;
-import org.kucro3.jam2.util.MethodContext;
 import org.kucro3.jam2.util.Version;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
@@ -33,14 +32,19 @@ public class ASMImplementationBuilder<T> extends ASMCodeBuilderRoot<ASMImplement
 			checkConstructor(implClz);
 		String name = "org/kucro3/jam2/asm/ASMImplementation_" + Jam2Util.generateUUIDForClassName();
 		String superClass;
-		ClassContext ctx;
+		ClassWriter ctx = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 		if(implClz.isInterface())
-			ctx = new ClassContext(Version.getClassVersion(), ACC_PUBLIC, name, null, superClass = "java/lang/Object", new String[] {Type.getInternalName(implClz)});
+			ctx.visit(Version.getClassVersion(), ACC_PUBLIC, name, null, superClass = "java/lang/Object", new String[] {Type.getInternalName(implClz)});
 		else
-			ctx = new ClassContext(Version.getClassVersion(), ACC_PUBLIC, name, null, superClass = Type.getInternalName(implClz), null);
-		MethodContext mctx = ctx.addMethod(MethodContext.newContext(mthd, ACC_PUBLIC));
+			ctx.visit(Version.getClassVersion(), ACC_PUBLIC, name, null, superClass = Type.getInternalName(implClz), null);
+		MethodVisitor mctx = ctx.visitMethod(
+				ACC_PUBLIC,
+				mthd.getName(),
+				Type.getMethodDescriptor(mthd),
+				null,
+				Jam2Util.toInternalNames(mthd.getExceptionTypes()));
 		Jam2Util.pushEmptyConstructor(ctx, ACC_PUBLIC, superClass);
-		return new ASMImplementationBuilder<T>(ctx, mctx, implClz);
+		return new ASMImplementationBuilder<T>(ctx, mctx, name, implClz);
 	}
 	
 	static Method filterMethod(Class<?> clz, boolean ensured)
@@ -105,11 +109,12 @@ public class ASMImplementationBuilder<T> extends ASMCodeBuilderRoot<ASMImplement
 		return !Modifier.isFinal(modifier);
 	}
 	
-	ASMImplementationBuilder(ClassContext ctx, MethodVisitor mv, Class<T> implClz)
+	ASMImplementationBuilder(ClassWriter ctx, MethodVisitor mv, String name, Class<T> implClz)
 	{
 		super(mv);
 		this.implClz = implClz;
 		this.ctx = ctx;
+		this.name = name;
 		this.isPureFunction = implClz.isInterface();
 	}
 	
@@ -120,8 +125,8 @@ public class ASMImplementationBuilder<T> extends ASMCodeBuilderRoot<ASMImplement
 			Class<?> clz = cachedClass;
 			if(clz == null)
 			{
-				super.end();
-				clz = ctx.newClass();
+				super.end(true);
+				clz = Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(name), ctx);
 			}
 			if(isPureFunction)
 				if(cached != null)
@@ -146,7 +151,9 @@ public class ASMImplementationBuilder<T> extends ASMCodeBuilderRoot<ASMImplement
 	
 	private Class<?> cachedClass;
 	
-	private final ClassContext ctx; 
+	private final String name;
+	
+	private final ClassWriter ctx;
 	
 	private final Class<?> implClz;
 }

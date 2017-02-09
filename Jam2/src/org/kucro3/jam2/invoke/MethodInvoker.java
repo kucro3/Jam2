@@ -4,10 +4,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import org.kucro3.jam2.invoke.MethodInvokerLambdaImpl.LambdaInvocation;
-import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.Jam2Util.CallingType;
-import org.kucro3.jam2.util.MethodContext;
+import org.kucro3.jam2.util.Contexts;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
 public abstract class MethodInvoker implements Opcodes {
@@ -21,16 +21,6 @@ public abstract class MethodInvoker implements Opcodes {
 		this.descriptor = Jam2Util.toDescriptor(name, returnType, arguments);
 	}
 	
-	public static void main(String[] args) throws Exception
-	{
-		Method mthd = Object.class.getMethod("equals", Object.class);
-		newInvoker(mthd);
-		long a = System.currentTimeMillis();
-		for(int i = 0; i < 100; i++)
-			newInvoker(mthd);
-		System.out.println((System.currentTimeMillis() - a) + "ms");
-	}
-	
 	public static MethodInvoker newInvoker(Method method)
 	{
 		if(!Modifier.isPublic(method.getModifiers()))
@@ -38,14 +28,21 @@ public abstract class MethodInvoker implements Opcodes {
 	
 		LambdaInvocation invocation;
 		
-		ClassContext ctx = new ClassContext(V1_8, ACC_PUBLIC,
-				"org/kucro3/jam2/invoke/MethodInvoker$" + Jam2Util.generateUUIDForClassName(),
-				null, "java/lang/Object", new String[] {"org/kucro3/jam2/invoke/MethodInvokerLambdaImpl$LambdaInvocation"});
-		Jam2Util.pushCaller(ctx, ACC_PUBLIC, "invoke", MethodContext.newContext(method), CallingType.VIRTUAL, true, true);
-		Jam2Util.pushEmptyConstructor(ctx, ACC_PUBLIC, Object.class);
+		String name;
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+		cw.visit(
+				V1_8,
+				ACC_PUBLIC,
+				name = "org/kucro3/jam2/invoke/MethodInvoker$" + Jam2Util.generateUUIDForClassName(),
+				null,
+				"java/lang/Object",
+				new String[] {"org/kucro3/jam2/invoke/MethodInvokerLambdaImpl$LambdaInvocation"});
+		Jam2Util.pushCaller(cw, ACC_PUBLIC, "invoke", Contexts.newMethodConstant(method), CallingType.VIRTUAL, true, true);
+		Jam2Util.pushEmptyConstructor(cw, ACC_PUBLIC, Object.class);
+		cw.visitEnd();
 		
 		try {
-			invocation = (LambdaInvocation) ctx.newClass().newInstance();
+			invocation = (LambdaInvocation) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(name), cw).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);

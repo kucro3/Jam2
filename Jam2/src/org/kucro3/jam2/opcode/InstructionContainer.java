@@ -36,14 +36,6 @@ public class InstructionContainer extends MethodVisitor implements Opcodes, Clon
 		return result;
 	}
 	
-	@Override
-	public InstructionContainer clone()
-	{
-		InstructionContainer copy = new InstructionContainer();
-		copy.insns.addAll(this.insns);
-		return copy;
-	}
-	
 	public void append(Instruction insn)
 	{
 		insns.add(insn);

@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.kucro3.jam2.simulator.MaxsComputer;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -39,11 +40,6 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	public static ClassLoader getProvidedClassLoader()
 	{
 		return Jam2Util.class.getClassLoader();
-	}
-	
-	public static Class<?> newClass(String name, ClassContext writer)
-	{
-		return newClass(name, writer.toByteArray());
 	}
 	
 	public static Class<?> newClass(String name, ClassWriter writer)
@@ -79,7 +75,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		mv.visitMethodInsn(INVOKESPECIAL, superClass,
 				"<init>", "()V", false);
 		mv.visitInsn(RETURN);
-		mv.visitMaxs(0, 0);
+		mv.visitMaxs(1, 1);
 		mv.visitEnd();
 	}
 	
@@ -91,10 +87,10 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	}
 	
 	public static void pushNewInstance(ClassVisitor cw, int modifiers, String methodName,
-			ConstructorContext cCtx, boolean varags, boolean objReturn)
+			MethodContext cCtx, boolean varags, boolean objReturn)
 	{
 		pushNewInstance(cw, modifiers, methodName,
-				cCtx.getDeclaringClassInternalName(), cCtx.getArgumentDescriptors(), cCtx.getExceptions(),
+				cCtx.getDeclaringClass(), cCtx.getArguments(), cCtx.getExceptions(),
 				varags, objReturn);
 	}
 	
@@ -107,8 +103,9 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		boolean selfStatic = Modifier.isStatic(modifiers);
 		String[] arguments = varargs ? new String[] {"[Ljava/lang/Object;"}
 				: constructorArguments;
-		MethodVisitor mv = _newMethod(cw, modifiers, methodName, 
+		MethodVisitor _mv = _newMethod(cw, modifiers, methodName, 
 				objReturn ? "Ljava/lang/Object;" : Type.getObjectType(type).getDescriptor(), arguments, exceptions);
+		MaxsComputer mv = new MaxsComputer(_mv);
 		
 		mv.visitTypeInsn(NEW, type);
 		mv.visitInsn(DUP);
@@ -116,7 +113,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 				varargs, true, selfStatic, -1);
 		mv.visitMethodInsn(INVOKESPECIAL, type, "<init>", descriptor, false);
 		mv.visitInsn(ARETURN);
-		mv.visitMaxs(0, 0);
+		mv.visitMaxs();
 		mv.visitEnd();
 	}
 	
@@ -124,7 +121,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			FieldContext ctx, boolean objArg, boolean objReturn)
 	{
 		pushFieldGetter(cw, modifiers, name,
-				ctx.getDeclaringClassInternalName(), ctx.getFieldName(), ctx.getDescriptor(),
+				Objects.requireNonNull(ctx.getDeclaringClass(), "Declaring class needed"), ctx.getName(), ctx.getDescriptor(),
 				FieldType.fromModifier(ctx.getModifier()), objArg, objReturn);
 	}
 	
@@ -139,8 +136,9 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		boolean selfStatic = (modifiers & ACC_STATIC) != 0;
 		int delta = selfStatic ? -1 : 0;
-		MethodVisitor mv = _newMethod(cw, modifiers, name, objReturn ? "Ljava/lang/Object;" : type, 
+		MethodVisitor _mv = _newMethod(cw, modifiers, name, objReturn ? "Ljava/lang/Object;" : type, 
 				objArg ? "Ljava/lang/Object;" : Type.getObjectType(ownerInternalName).getDescriptor(), null);
+		MaxsComputer mv = new MaxsComputer(_mv);
 		mv.visitCode();
 		if(!ft.isStatic())
 		{
@@ -155,7 +153,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		}
 		else
 			mv.visitInsn(_forReturnInsn(type));
-		mv.visitMaxs(0, 0);
+		mv.visitMaxs();
 		mv.visitEnd();
 	}
 	
@@ -163,7 +161,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			FieldContext ctx, boolean objArgument)
 	{
 		pushFieldSetter(cw, modifiers, name,
-				ctx.getDeclaringClassInternalName(), ctx.getFieldName(), ctx.getDescriptor(),
+				ctx.getDeclaringClass(), ctx.getName(), ctx.getDescriptor(),
 				FieldType.fromModifier(ctx.getModifier()), objArgument);
 	}
 	
@@ -178,8 +176,9 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{		
 		boolean selfStatic = (modifiers & ACC_STATIC) != 0;
 		int delta = selfStatic ? -1 : 0;
-		MethodVisitor mv = _newMethod(cw, modifiers, name, DESCRIPTOR_VOID,
+		MethodVisitor _mv = _newMethod(cw, modifiers, name, DESCRIPTOR_VOID,
 				new String[] {"Ljava/lang/Object;", objArgument ? "Ljava/lang/Object;" : type}, null);
+		MaxsComputer mv = new MaxsComputer(_mv);
 		mv.visitCode();
 		if(!ft.isStatic())
 		{
@@ -200,14 +199,14 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		}
 		mv.visitFieldInsn(ft.put(), ownerInternalName, fieldName, type);
 		mv.visitInsn(RETURN);
-		mv.visitMaxs(0, 0);
+		mv.visitMaxs();
 		mv.visitEnd();
 	}
 	
 	public static void pushGetter(ClassVisitor cw, int modifiers, String name, FieldContext ctx)
 	{
-		pushGetter(cw, modifiers, ctx.getDeclaringClassInternalName(),
-				name, ctx.getFieldName(), ctx.getDescriptor(), FieldType.fromModifier(ctx.getModifier()));
+		pushGetter(cw, modifiers, ctx.getDeclaringClass(),
+				name, ctx.getName(), ctx.getDescriptor(), FieldType.fromModifier(ctx.getModifier()));
 	}
 	
 	public static void pushGetter(ClassVisitor cw, int modifiers, String ownerInternalName,
@@ -219,20 +218,21 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	public static void pushGetter(ClassVisitor cw, int modifiers, String ownerInternalName, 
 			String name, String fieldname, String type, FieldType ft)
 	{
-		MethodVisitor mv = _newMethod(cw, modifiers, name, type, (String[])null, null);
+		MethodVisitor _mv = _newMethod(cw, modifiers, name, type, (String[])null, null);
+		MaxsComputer mv = new MaxsComputer(_mv);
 		mv.visitCode();
 		if(!ft.isStatic())
 			mv.visitVarInsn(ALOAD, 0);
 		mv.visitFieldInsn(ft.get(), ownerInternalName, fieldname, type);
 		mv.visitInsn(_forReturnInsn(type));
-		mv.visitMaxs(0, 0);
+		mv.visitMaxs();
 		mv.visitEnd();
 	}
 	
 	public static void pushSetter(ClassVisitor cw, int modifiers, String name, FieldContext ctx)
 	{
-		pushSetter(cw, modifiers, ctx.getDeclaringClassInternalName(),
-				name, ctx.getFieldName(), ctx.getDescriptor(), FieldType.fromModifier(ctx.getModifier()));
+		pushSetter(cw, modifiers, ctx.getDeclaringClass(),
+				name, ctx.getName(), ctx.getDescriptor(), FieldType.fromModifier(ctx.getModifier()));
 	}
 	
 	public static void pushSetter(ClassVisitor cw, int modifiers, String ownerInternalName,
@@ -244,20 +244,21 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	public static void pushSetter(ClassVisitor cw, int modifiers, String ownerInternalName,
 			String name, String fieldname, String type, FieldType ft)
 	{
-		MethodVisitor mv = _newMethod(cw, modifiers, name, DESCRIPTOR_VOID, type, null);
+		MethodVisitor _mv = _newMethod(cw, modifiers, name, DESCRIPTOR_VOID, type, null);
+		MaxsComputer mv = new MaxsComputer(_mv);
 		mv.visitCode();
 		if(!ft.isStatic())
 			mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(_forLocalLoadInsn(type), 1);
 		mv.visitFieldInsn(ft.put(), ownerInternalName, fieldname, type);
 		mv.visitInsn(RETURN);
-		mv.visitMaxs(0, 0);
+		mv.visitMaxs();
 		mv.visitEnd();
 	}
 	
 	public static void pushJavaBean(ClassVisitor cw, FieldContext ctx)
 	{
-		pushJavaBean(cw, ctx.getDeclaringClassInternalName(), ctx.getFieldName(), ctx.getDescriptor());
+		pushJavaBean(cw, ctx.getDeclaringClass(), ctx.getName(), ctx.getDescriptor());
 	}
 	
 	public static void pushJavaBean(ClassVisitor cw, String ownerInternalName, String fieldName, Class<?> type)
@@ -295,8 +296,8 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			boolean vargs, boolean objReturn)
 	{
 		pushCaller(cw, modifiers, name,
-				callingCtx.getDeclaringClassInternalName(), callingCtx.getMethodName(), callingCtx.getReturnTypeDescriptor(),
-				callingCtx.getArgumentDescriptors(), ct, vargs, objReturn);
+				callingCtx.getDeclaringClass(), callingCtx.getName(), callingCtx.getReturnType(),
+				callingCtx.getArguments(), ct, vargs, objReturn);
 	}
 	
 	private static void _pushCaller$(ClassVisitor cw, int modifiers, String name,
@@ -320,7 +321,8 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		if(vargs)
 			modifiers |= ACC_VARARGS;
 		
-		MethodVisitor mv = _newMethod(cw, modifiers, name, descriptor, null);
+		MethodVisitor _mv = _newMethod(cw, modifiers, name, descriptor, null);
+		MaxsComputer mv = new MaxsComputer(_mv);
 		mv.visitCode();
 		
 		String returnTypeDescriptor =
@@ -329,7 +331,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		_pushCallerProcessCalling(mv, insn, lambda3.function(callingClass), methodName, callingDescriptor, ct.getFlag());
 		_pushCallerProcessReturn(mv, returnTypeDescriptor, objReturn, isVoid);
 		
-		mv.visitMaxs(0, 0);
+		mv.visitMaxs();
 		mv.visitEnd();
 	}
 	
@@ -595,11 +597,6 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return __init__(cw, modifiers, _toDescriptor(DESCRIPTOR_VOID, arguments), throwings);
 	}
 	
-	public static MethodVisitor newConstructor(ClassVisitor cv, ConstructorContext ctx)
-	{
-		return ctx.bind(cv, cv);
-	}
-	
 	public static MethodVisitor newStaticBlock(ClassVisitor cw)
 	{
 		return __clinit__(cw);
@@ -619,7 +616,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	public static MethodVisitor newMethod(ClassVisitor cw, MethodContext ctx)
 	{
-		return ctx.bind(cw, cw);
+		return cw.visitMethod(ctx.getModifier(), ctx.getName(), ctx.getDescriptor(), ctx.getSignature(), ctx.getExceptions());
 	}
 	
 	public static FieldVisitor newField(ClassVisitor cw, int modifiers, String name, Class<?> type)
@@ -634,7 +631,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	public static FieldVisitor newField(ClassVisitor cw, FieldContext ctx)
 	{
-		return ctx.bind(cw, cw);
+		return cw.visitField(ctx.getModifier(), ctx.getName(), ctx.getDescriptor(), ctx.getName(), ctx.getValue());
 	}
 	
 	static MethodVisitor _newMethod(ClassVisitor cw, int modifiers, String name, String descriptor,
@@ -930,6 +927,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return name.replace('.', '/');
 	}
 	
+	public static String fromInternalNameToCanonical(String name)
+	{
+		return name.replace('/', '.');
+	}
+	
 	static Type[] _toTypes(String[] descriptors)
 	{
 		Type[] types = new Type[descriptors.length];
@@ -1145,7 +1147,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		
 		public static CallingType fromMethod(ClassContext ctx, MethodContext mctx)
 		{
-			if(Modifier.isInterface(ctx.getAccess()))
+			if(Modifier.isInterface(ctx.getModifier()))
 				return INTERFACE;
 			return fromModifier(mctx.getModifier());
 		}

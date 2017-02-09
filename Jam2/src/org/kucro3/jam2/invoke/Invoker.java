@@ -2,13 +2,16 @@ package org.kucro3.jam2.invoke;
 
 import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaGet;
 import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaSet;
-import org.kucro3.jam2.util.ClassContext;
-import org.kucro3.jam2.util.ConstructorContext;
 import org.kucro3.jam2.util.FieldContext;
 import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.LambdaContext;
 import org.kucro3.jam2.util.MethodContext;
+import org.kucro3.jam2.util.Contexts;
+import org.kucro3.jam2.util.context.visitable.VisitableClassContext;
+import org.kucro3.jam2.util.context.visitable.VisitableConstantClassContext;
+import org.kucro3.jam2.util.context.visitable.VisitedMethodCompound;
 import org.kucro3.jam2.util.Jam2Util.CallingType;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
 import java.util.HashMap;
@@ -55,17 +58,18 @@ public class Invoker implements Opcodes {
 			return;
 		}
 
-		ClassContext initClassCtx = 
-				new ClassContext(V1_8, ACC_PUBLIC, initClassName, null, "org/kucro3/jam2/invoke/Initializer", null);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+		VisitableClassContext initClassCtx = new VisitableConstantClassContext();
+		initClassCtx.visit(V1_8, ACC_PUBLIC, initClassName, null, "org/kucro3/jam2/invoke/Initializer", null);
 		
-		MethodContext mInitFields 
-				= initClassCtx.addMethod(ACC_PUBLIC, "initializeFields", void.class, new Class<?>[] {Invoker.class, Field[].class}, null);
-		MethodContext mInitMethods
-				= initClassCtx.addMethod(ACC_PUBLIC, "initializeMethods", void.class, new Class<?>[] {Invoker.class, Method[].class}, null);
-		MethodContext mInitConstructors
-				= initClassCtx.addMethod(ACC_PUBLIC, "initializeConstructors", void.class, new Class<?>[] {Invoker.class, Constructor[].class}, null);
-		MethodContext mInitConstructor
-				= initClassCtx.addConstructor(ACC_PUBLIC, new Class<?>[] {}, null);
+		VisitedMethodCompound mInitFields 
+				= (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeFields", void.class, new Class<?>[] {Invoker.class, Field[].class});
+		VisitedMethodCompound mInitMethods
+				= (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeMethods", void.class, new Class<?>[] {Invoker.class, Method[].class});
+		VisitedMethodCompound mInitConstructors
+				= (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeConstructors", void.class, new Class<?>[] {Invoker.class, Constructor[].class});
+		VisitedMethodCompound mInitConstructor
+				= (VisitedMethodCompound) initClassCtx.newConstructor(ACC_PUBLIC, new Class<?>[] {});
 		
 		mInitConstructor.visitCode();
 		mInitConstructor.visitVarInsn(ALOAD, 0);
@@ -79,7 +83,7 @@ public class Invoker implements Opcodes {
 		for(int i = 0; i < fields.length; i++)
 		{
 			Field field = fields[i];
-			FieldContext fCtx = FieldContext.newContext(field);
+			FieldContext fCtx = Contexts.newFieldConstant(field);
 			
 			mInitFields.visitVarInsn(ALOAD, 1);
 			mInitFields.visitVarInsn(ALOAD, 2);
@@ -88,11 +92,11 @@ public class Invoker implements Opcodes {
 			
 			LambdaContext lCtx;
 			
-			Jam2Util.pushFunctionalLambda(initClassCtx, initClassCtx.getInternalName(), mInitFields,
+			Jam2Util.pushFunctionalLambda(initClassCtx, initClassCtx.getName(), mInitFields,
 					lCtx = newFieldGetterContext(), true);
 			Jam2Util.pushFieldGetter(initClassCtx,  ACC_STATIC | ACC_PRIVATE | ACC_SYNTHETIC, lCtx.getInternalLambdaName(),
 					fCtx, true, true);
-			Jam2Util.pushFunctionalLambda(initClassCtx, initClassCtx.getInternalName(), mInitFields,
+			Jam2Util.pushFunctionalLambda(initClassCtx, initClassCtx.getName(), mInitFields,
 					lCtx = newFieldSetterContext(), true);
 			Jam2Util.pushFieldSetter(initClassCtx,  ACC_STATIC | ACC_PRIVATE | ACC_SYNTHETIC, lCtx.getInternalLambdaName(),
 					fCtx, true);
@@ -114,7 +118,7 @@ public class Invoker implements Opcodes {
 		for(int i = 0; i < methods.length; i++)
 		{
 			Method method = methods[i];
-			MethodContext mCtx = MethodContext.newContext(method);
+			MethodContext mCtx = Contexts.newMethodConstant(method);
 			
 			mInitMethods.visitVarInsn(ALOAD, 1);
 			mInitMethods.visitVarInsn(ALOAD, 2);
@@ -123,7 +127,7 @@ public class Invoker implements Opcodes {
 			
 			LambdaContext lCtx;
 			
-			Jam2Util.pushFunctionalLambda(initClassCtx, initClassCtx.getInternalName(), mInitMethods, 
+			Jam2Util.pushFunctionalLambda(initClassCtx, initClassCtx.getName(), mInitMethods, 
 					lCtx = newMethodInvokerContext(), true);
 			Jam2Util.pushCaller(initClassCtx, ACC_STATIC | ACC_PRIVATE | ACC_SYNTHETIC, lCtx.getInternalLambdaName(),
 					mCtx, Modifier.isStatic(mCtx.getModifier()) ? CallingType.STATIC : CallingType.VIRTUAL, true, true);
@@ -144,7 +148,7 @@ public class Invoker implements Opcodes {
 		for(int i = 0; i < constructors.length; i++)
 		{
 			Constructor constructor = constructors[i];
-			ConstructorContext cCtx = ConstructorContext.newContext(constructor);
+			MethodContext cCtx = Contexts.newMethodConstant(constructor);
 			
 			mInitConstructors.visitVarInsn(ALOAD, 1);
 			mInitConstructors.visitVarInsn(ALOAD, 2);
@@ -153,7 +157,7 @@ public class Invoker implements Opcodes {
 			
 			LambdaContext lCtx;
 			
-			Jam2Util.pushFunctionalLambda(initClassCtx, initClassCtx.getInternalName(), mInitConstructors,
+			Jam2Util.pushFunctionalLambda(initClassCtx, initClassCtx.getName(), mInitConstructors,
 					lCtx = newConstructorInvokerContext(), true);
 			Jam2Util.pushNewInstance(initClassCtx, ACC_STATIC | ACC_PRIVATE | ACC_SYNTHETIC, lCtx.getInternalLambdaName(),
 					cCtx, true, true);
@@ -169,7 +173,7 @@ public class Invoker implements Opcodes {
 		mInitConstructors.visitMaxs(0, 0);
 		mInitConstructors.visitEnd();
 		
-		this.initClass = initClassCtx.newClass();
+		this.initClass = Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(initClassCtx.getName()), cw);
 		
 		try {
 			Initializer initializer = (Initializer) initClass.newInstance();
