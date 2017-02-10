@@ -12,11 +12,18 @@ import org.kucro3.jam2.util.Version;
 import org.kucro3.jam2.util.context.ConstantClassContext;
 import org.kucro3.jam2.util.context.ConstantFieldContext;
 import org.kucro3.jam2.util.context.ConstantMethodContext;
+import org.kucro3.jam2.util.context.visitable.VisitableClassContext;
+import org.kucro3.jam2.util.context.visitable.VisitableClassContextCompound;
 import org.objectweb.asm.Type;
 
 public class Contexts {
 	private Contexts()
 	{
+	}
+	
+	public static VisitableClassContext toVisitable(ClassContext ctx)
+	{
+		return VisitableClassContextCompound.newCompound(ctx);
 	}
 	
 	public static MethodContext newMethodConstant(Method method)

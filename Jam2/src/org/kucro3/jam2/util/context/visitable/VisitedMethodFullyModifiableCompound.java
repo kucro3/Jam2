@@ -9,4 +9,9 @@ public class VisitedMethodFullyModifiableCompound extends VisitedMethodCompound
 	{
 		super(mc, mv);
 	}
+	
+	public VisitedMethodFullyModifiableCompound(MethodContext.FullyModifiable mc) 
+	{
+		super(mc);
+	}
 }

@@ -1,13 +1,18 @@
 package org.kucro3.jam2.util.context.visitable;
 
 import org.kucro3.jam2.util.MethodContext;
-import org.kucro3.jam2.util.Version;
 import org.objectweb.asm.MethodVisitor;
 
-public class VisitedMethodCompound extends MethodVisitor implements MethodContext {
+public class VisitedMethodCompound extends VisitableMethodContext {
 	public VisitedMethodCompound(MethodContext mc, MethodVisitor mv)
 	{
-		super(Version.getASMVersion(), mv);
+		super(mv);
+		this.mc = mc;
+	}
+	
+	public VisitedMethodCompound(MethodContext mc)
+	{
+		super();
 		this.mc = mc;
 	}
 

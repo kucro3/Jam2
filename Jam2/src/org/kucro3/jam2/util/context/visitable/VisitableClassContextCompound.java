@@ -8,7 +8,7 @@ import org.kucro3.jam2.util.FieldContext;
 import org.kucro3.jam2.util.MethodContext;
 import org.objectweb.asm.ClassVisitor;
 
-public abstract class VisitableClassContextCompound extends AbstractVisitableClassContext {
+public abstract class VisitableClassContextCompound extends VisitableClassContext {
 	public static VisitableClassContextCompound newCompound(ClassContext ref)
 	{
 		return newCompound(ref, null);
@@ -93,6 +93,72 @@ public abstract class VisitableClassContextCompound extends AbstractVisitableCla
 	public void setSignature(String signature) 
 	{
 		ref.setSignature(signature);
+	}
+	
+	@Override
+	public String getDebug() 
+	{
+		return ref.getDebug();
+	}
+
+	@Override
+	public String getEnclosingClass() 
+	{
+		return ref.getEnclosingClass();
+	}
+
+	@Override
+	public String getEnclosingMethodName() 
+	{
+		return ref.getEnclosingMethodName();
+	}
+
+	@Override
+	public String getEnclosingMethodDescriptor() 
+	{
+		return ref.getEnclosingMethodDescriptor();
+	}
+
+	@Override
+	public String[] getInterfaces() 
+	{
+		return ref.getInterfaces();
+	}
+
+	@Override
+	public String getSignature() 
+	{
+		return ref.getSignature();
+	}
+
+	@Override
+	public String getName() 
+	{
+		return ref.getName();
+	}
+
+	@Override
+	public int getModifier() 
+	{
+		return ref.getModifier();
+	}
+
+	@Override
+	public String getSource() 
+	{
+		return ref.getSource();
+	}
+
+	@Override
+	public String getSuperClass() 
+	{
+		return ref.getSuperClass();
+	}
+
+	@Override
+	public int getVersion() 
+	{
+		return ref.getVersion();
 	}
 
 	@Override

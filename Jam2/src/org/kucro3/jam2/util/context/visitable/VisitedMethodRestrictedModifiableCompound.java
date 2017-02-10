@@ -9,4 +9,9 @@ public class VisitedMethodRestrictedModifiableCompound extends VisitedMethodComp
 	{
 		super(mc, mv);
 	}
+	
+	public VisitedMethodRestrictedModifiableCompound(MethodContext.RestrictedModifiable mc)
+	{
+		super(mc);
+	}
 }

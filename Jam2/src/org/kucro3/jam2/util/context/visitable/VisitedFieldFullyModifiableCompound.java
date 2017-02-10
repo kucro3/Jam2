@@ -9,4 +9,9 @@ public class VisitedFieldFullyModifiableCompound extends VisitedFieldCompound
 	{
 		super(fc, fv);
 	}
+	
+	public VisitedFieldFullyModifiableCompound(FieldContext.FullyModifiable fc) 
+	{
+		super(fc);
+	}
 }

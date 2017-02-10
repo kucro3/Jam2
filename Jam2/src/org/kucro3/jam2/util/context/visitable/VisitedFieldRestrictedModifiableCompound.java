@@ -9,4 +9,9 @@ public class VisitedFieldRestrictedModifiableCompound extends VisitedFieldCompou
 	{
 		super(fc, fv);
 	}
+	
+	public VisitedFieldRestrictedModifiableCompound(FieldContext.RestrictedModifiable fc)
+	{
+		super(fc);
+	}
 }
