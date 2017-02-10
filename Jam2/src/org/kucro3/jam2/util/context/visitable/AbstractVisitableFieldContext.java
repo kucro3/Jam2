@@ -4,13 +4,13 @@ import org.kucro3.jam2.util.FieldContext;
 import org.kucro3.jam2.util.Version;
 import org.objectweb.asm.FieldVisitor;
 
-public abstract class VisitableFieldContext extends FieldVisitor implements FieldContext {
-	public VisitableFieldContext(FieldVisitor fv) 
+public abstract class AbstractVisitableFieldContext extends FieldVisitor implements FieldContext {
+	public AbstractVisitableFieldContext(FieldVisitor fv) 
 	{
 		super(Version.getASMVersion(), fv);
 	}
 	
-	public VisitableFieldContext() 
+	public AbstractVisitableFieldContext() 
 	{
 		super(Version.getASMVersion());
 	}

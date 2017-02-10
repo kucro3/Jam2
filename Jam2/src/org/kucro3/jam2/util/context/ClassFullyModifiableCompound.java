@@ -1,20 +1,14 @@
-package org.kucro3.jam2.util.context.visitable;
+package org.kucro3.jam2.util.context;
 
 import org.kucro3.jam2.util.ClassContext;
-import org.objectweb.asm.ClassVisitor;
 
-public class VisitableClassContextFullyModifiableCompound extends VisitableClassContextCompound
+public class ClassFullyModifiableCompound extends ClassCompound 
 		implements ClassContext.FullyModifiable {
-	public VisitableClassContextFullyModifiableCompound(ClassContext.FullyModifiable ref) 
+	public ClassFullyModifiableCompound(ClassContext.FullyModifiable ctx) 
 	{
-		super(ref);
+		super(ctx);
 	}
-	
-	public VisitableClassContextFullyModifiableCompound(ClassContext.FullyModifiable ref, ClassVisitor cv) 
-	{
-		super(ref, cv);
-	}
-	
+
 	@Override
 	public void setSource(String source) 
 	{
@@ -26,7 +20,7 @@ public class VisitableClassContextFullyModifiableCompound extends VisitableClass
 	{
 		ref.setDebug(debug);
 	}
-
+	
 	@Override
 	public void setSuperClass(String superClass) 
 	{
@@ -74,19 +68,19 @@ public class VisitableClassContextFullyModifiableCompound extends VisitableClass
 	{
 		ref.setSignature(signature);
 	}
-	
+
 	@Override
 	public void clearFields() 
 	{
 		ref.clearFields();
 	}
-	
+
 	@Override
 	public void removeField(String name) 
 	{
 		ref.removeField(name);
 	}
-	
+
 	@Override
 	public void clearMethods() 
 	{

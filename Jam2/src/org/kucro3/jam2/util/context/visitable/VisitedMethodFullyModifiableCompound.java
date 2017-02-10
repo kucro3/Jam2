@@ -14,4 +14,34 @@ public class VisitedMethodFullyModifiableCompound extends VisitedMethodCompound
 	{
 		super(mc);
 	}
+	
+	@Override
+	public void setExceptions(String[] exceptions) 
+	{
+		this.mc.setExceptions(exceptions);
+	}
+	
+	@Override
+	public void setModifier(int modifier)
+	{
+		this.mc.setModifier(modifier);
+	}
+	
+	@Override
+	public void setName(String name)
+	{
+		this.mc.setName(name);
+	}
+	
+	@Override
+	public void setDescriptor(String descriptor)
+	{
+		this.mc.setDescriptor(descriptor);
+	}
+	
+	@Override
+	public void setSignature(String signature)
+	{
+		this.mc.setSignature(signature);
+	}
 }

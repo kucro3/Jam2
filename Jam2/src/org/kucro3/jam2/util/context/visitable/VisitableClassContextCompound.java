@@ -7,8 +7,10 @@ import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.FieldContext;
 import org.kucro3.jam2.util.MethodContext;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
 
-public abstract class VisitableClassContextCompound extends VisitableClassContext {
+public abstract class VisitableClassContextCompound extends VisitableClassContext implements ClassContext.Compound {
 	public static VisitableClassContextCompound newCompound(ClassContext ref)
 	{
 		return newCompound(ref, null);
@@ -33,66 +35,6 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	{
 		super(cv);
 		this.ref = Objects.requireNonNull(ref);
-	}
-	
-	@Override
-	public void setSource(String source) 
-	{
-		ref.setSource(source);
-	}
-
-	@Override
-	public void setDebug(String debug) 
-	{
-		ref.setDebug(debug);
-	}
-
-	@Override
-	public void setSuperClass(String superClass) 
-	{
-		ref.setSuperClass(superClass);
-	}
-
-	@Override
-	public void setInterfaces(String[] interfaces) 
-	{
-		ref.setInterfaces(interfaces);
-	}
-
-	@Override
-	public void setEnclosingClass(String enclosingClass) 
-	{
-		ref.setEnclosingClass(enclosingClass);
-	}
-
-	@Override
-	public void setEnclosingMethodName(String name) 
-	{
-		ref.setEnclosingMethodName(name);
-	}
-
-	@Override
-	public void setEnclosingMethodDescriptor(String descriptor) 
-	{
-		ref.setEnclosingMethodDescriptor(descriptor);
-	}
-
-	@Override
-	public void setVersion(int version) 
-	{
-		ref.setVersion(version);
-	}
-
-	@Override
-	public void setModifier(int modifier) 
-	{
-		ref.setModifier(modifier);
-	}
-
-	@Override
-	public void setSignature(String signature) 
-	{
-		ref.setSignature(signature);
 	}
 	
 	@Override
@@ -162,36 +104,6 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	}
 
 	@Override
-	public void clearFields() 
-	{
-		ref.clearFields();
-	}
-
-	@Override
-	public void removeField(String name) 
-	{
-		ref.removeField(name);
-	}
-
-	@Override
-	public void clearMethods() 
-	{
-		ref.clearMethods();
-	}
-
-	@Override
-	public void removeMethod(String fullDescriptor) 
-	{
-		ref.removeMethod(fullDescriptor);
-	}
-
-	@Override
-	public void setName(String name) 
-	{
-		ref.setName(name);
-	}
-	
-	@Override
 	public boolean containsField(String name) 
 	{
 		return ref.containsField(name);
@@ -228,18 +140,46 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	}
 
 	@Override
-	public FieldContext newField(int modifier, String name, String descriptor, String signature, Object value) 
+	public final VisitedFieldCompound newField(int modifier, String name, String descriptor, String signature, Object value) 
 	{
-		return ref.newField(modifier, name, descriptor, signature, value);
-	}
-
-	@Override
-	public MethodContext newMethod(int modifier, String name, String descriptor, String signature,
-			String[] exceptions)
-	{
-		return ref.newMethod(modifier, name, descriptor, signature, exceptions);
+		FieldVisitor fv = super.visitField(modifier, name, descriptor, signature, value);
+		FieldContext fc = ref.newField(modifier, name, descriptor, signature, value);
+		return newFieldCompound(fc, fv);
 	}
 	
+	@Override
+	public final VisitedFieldCompound visitField(int modifier, String name, String descriptor, String signature, Object value)
+	{
+		return this.newField(modifier, name, descriptor, signature, value);
+	}
+	
+	protected VisitedFieldCompound newFieldCompound(FieldContext ctx, FieldVisitor fv)
+	{
+		return VisitedFieldCompound.newCompound(ctx, fv);
+	}
+	
+	@Override
+	public final VisitedMethodCompound newMethod(int modifier, String name, String descriptor, String signature,
+			String[] exceptions)
+	{
+		MethodVisitor mv = super.visitMethod(modifier, name, descriptor, signature, exceptions);
+		MethodContext mc = ref.newMethod(modifier, name, descriptor, signature, exceptions);
+		return newMethodCompound(mc, mv);
+	}
+	
+	@Override
+	public final VisitedMethodCompound visitMethod(int modifier, String name, String descriptor, String signature,
+			String[] exceptions)
+	{
+		return this.newMethod(modifier, name, descriptor, signature, exceptions);
+	}
+	
+	protected VisitedMethodCompound newMethodCompound(MethodContext ctx, MethodVisitor mv)
+	{
+		return VisitedMethodCompound.newCompound(ctx, mv);
+	}
+	
+	@Override
 	public ClassContext getContext()
 	{
 		return ref;

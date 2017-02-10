@@ -1,18 +1,17 @@
-package org.kucro3.jam2.util.context.visitable;
+package org.kucro3.jam2.util.context;
 
 import org.kucro3.jam2.util.ClassContext;
-import org.objectweb.asm.ClassVisitor;
 
-public class VisitableClassContextFullyModifiableCompound extends VisitableClassContextCompound
-		implements ClassContext.FullyModifiable {
-	public VisitableClassContextFullyModifiableCompound(ClassContext.FullyModifiable ref) 
+public class ClassRestrictedModifiableCompound extends ClassCompound
+		implements ClassContext.RestrictedModifiable {
+	public ClassRestrictedModifiableCompound(ClassContext.RestrictedModifiable ctx)
 	{
-		super(ref);
+		super(ctx);
 	}
 	
-	public VisitableClassContextFullyModifiableCompound(ClassContext.FullyModifiable ref, ClassVisitor cv) 
+	public ClassRestrictedModifiableCompound(ClassContext.FullyModifiable ctx)
 	{
-		super(ref, cv);
+		super(ctx);
 	}
 	
 	@Override
@@ -26,7 +25,7 @@ public class VisitableClassContextFullyModifiableCompound extends VisitableClass
 	{
 		ref.setDebug(debug);
 	}
-
+	
 	@Override
 	public void setSuperClass(String superClass) 
 	{
@@ -74,19 +73,19 @@ public class VisitableClassContextFullyModifiableCompound extends VisitableClass
 	{
 		ref.setSignature(signature);
 	}
-	
+
 	@Override
 	public void clearFields() 
 	{
 		ref.clearFields();
 	}
-	
+
 	@Override
 	public void removeField(String name) 
 	{
 		ref.removeField(name);
 	}
-	
+
 	@Override
 	public void clearMethods() 
 	{
@@ -97,11 +96,5 @@ public class VisitableClassContextFullyModifiableCompound extends VisitableClass
 	public void removeMethod(String fullDescriptor) 
 	{
 		ref.removeMethod(fullDescriptor);
-	}
-
-	@Override
-	public void setName(String name) 
-	{
-		ref.setName(name);
 	}
 }

@@ -251,4 +251,9 @@ public interface ClassContext {
 		@Override
 		void setName(String name);
 	}
+	
+	interface Compound extends ClassContext
+	{
+		ClassContext getContext();
+	}
 }

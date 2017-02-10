@@ -14,4 +14,34 @@ public class VisitedFieldFullyModifiableCompound extends VisitedFieldCompound
 	{
 		super(fc);
 	}
+	
+	@Override
+	public void setDescriptor(String descriptor) 
+	{
+		this.fc.setDescriptor(descriptor);
+	}
+	
+	@Override
+	public void setSignature(String signature)
+	{
+		this.fc.setSignature(signature);
+	}
+	
+	@Override
+	public void setModifier(int modifier)
+	{
+		this.fc.setModifier(modifier);
+	}
+	
+	@Override
+	public void setName(String name)
+	{
+		this.fc.setName(name);
+	}
+	
+	@Override
+	public void setValue(Object value)
+	{
+		this.fc.setValue(value);
+	}
 }

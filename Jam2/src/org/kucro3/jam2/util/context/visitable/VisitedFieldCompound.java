@@ -1,19 +1,32 @@
 package org.kucro3.jam2.util.context.visitable;
 
+import java.util.Objects;
+
 import org.kucro3.jam2.util.FieldContext;
 import org.objectweb.asm.FieldVisitor;
 
-public class VisitedFieldCompound extends VisitableFieldContext {
+public abstract class VisitedFieldCompound extends AbstractVisitableFieldContext
+		implements FieldContext.Compound, FieldContext.Visited {
+	public static VisitedFieldCompound newCompound(FieldContext fc, FieldVisitor fv)
+	{
+		if(fc instanceof FieldContext.RestrictedModifiable)
+			return new VisitedFieldRestrictedModifiableCompound((FieldContext.RestrictedModifiable) fc, fv);
+		else if(fc instanceof FieldContext.FullyModifiable)
+			return new VisitedFieldFullyModifiableCompound((FieldContext.FullyModifiable) fc, fv);
+		else
+			return new VisitedFieldConstantCompound(fc, fv);
+	}
+	
 	public VisitedFieldCompound(FieldContext fc, FieldVisitor fv)
 	{
 		super(fv);
-		this.fc = fc;
+		this.fc = Objects.requireNonNull(fc);
 	}
 	
 	public VisitedFieldCompound(FieldContext fc)
 	{
 		super();
-		this.fc = fc;
+		this.fc = Objects.requireNonNull(fc);
 	}
 	
 	@Override
@@ -53,39 +66,16 @@ public class VisitedFieldCompound extends VisitableFieldContext {
 	}
 	
 	@Override
-	public void setDescriptor(String descriptor) 
-	{
-		this.fc.setDescriptor(descriptor);
-	}
-	
-	@Override
-	public void setSignature(String signature)
-	{
-		this.fc.setSignature(signature);
-	}
-	
-	@Override
-	public void setModifier(int modifier)
-	{
-		this.fc.setModifier(modifier);
-	}
-	
-	@Override
-	public void setName(String name)
-	{
-		this.fc.setName(name);
-	}
-	
-	@Override
-	public void setValue(Object value)
-	{
-		this.fc.setValue(value);
-	}
-	
 	public FieldVisitor getVisitor()
 	{
 		return super.fv;
 	}
 	
-	protected FieldContext fc;
+	@Override
+	public FieldContext getContext()
+	{
+		return fc;
+	}
+	
+	protected final FieldContext fc;
 }

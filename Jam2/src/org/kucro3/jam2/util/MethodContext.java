@@ -1,5 +1,7 @@
 package org.kucro3.jam2.util;
 
+import org.objectweb.asm.MethodVisitor;
+
 public interface MethodContext extends AccessableContext {
 	String[] getExceptions();
 	
@@ -23,5 +25,15 @@ public interface MethodContext extends AccessableContext {
 	
 	interface FullyModifiable extends Modifiable, AccessableContext.FullyModifiable
 	{
+	}
+	
+	interface Compound extends MethodContext
+	{
+		MethodContext getContext();
+	}
+	
+	interface Visited extends MethodContext
+	{
+		MethodVisitor getVisitor();
 	}
 }

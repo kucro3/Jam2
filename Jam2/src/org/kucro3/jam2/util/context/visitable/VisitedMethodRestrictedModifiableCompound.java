@@ -14,4 +14,22 @@ public class VisitedMethodRestrictedModifiableCompound extends VisitedMethodComp
 	{
 		super(mc);
 	}
+	
+	@Override
+	public void setExceptions(String[] exceptions) 
+	{
+		this.mc.setExceptions(exceptions);
+	}
+	
+	@Override
+	public void setModifier(int modifier)
+	{
+		this.mc.setModifier(modifier);
+	}
+	
+	@Override
+	public void setSignature(String signature)
+	{
+		this.mc.setSignature(signature);
+	}
 }

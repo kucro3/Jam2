@@ -1,19 +1,32 @@
 package org.kucro3.jam2.util.context.visitable;
 
+import java.util.Objects;
+
 import org.kucro3.jam2.util.MethodContext;
 import org.objectweb.asm.MethodVisitor;
 
-public class VisitedMethodCompound extends VisitableMethodContext {
+public abstract class VisitedMethodCompound extends AbstractVisitableMethodContext 
+		implements MethodContext.Compound, MethodContext.Visited {
+	public static VisitedMethodCompound newCompound(MethodContext mc, MethodVisitor mv)
+	{
+		if(mc instanceof MethodContext.RestrictedModifiable)
+			return new VisitedMethodRestrictedModifiableCompound((MethodContext.RestrictedModifiable) mc, mv);
+		else if(mc instanceof MethodContext.FullyModifiable)
+			return new VisitedMethodFullyModifiableCompound((MethodContext.FullyModifiable) mc, mv);
+		else
+			return new VisitedMethodConstantCompound(mc, mv);
+	}
+	
 	public VisitedMethodCompound(MethodContext mc, MethodVisitor mv)
 	{
 		super(mv);
-		this.mc = mc;
+		this.mc = Objects.requireNonNull(mc);
 	}
 	
 	public VisitedMethodCompound(MethodContext mc)
 	{
 		super();
-		this.mc = mc;
+		this.mc = Objects.requireNonNull(mc);
 	}
 
 	@Override
@@ -57,7 +70,7 @@ public class VisitedMethodCompound extends VisitableMethodContext {
 	{
 		return this.mc.getDescriptor();
 	}
-
+	
 	@Override
 	public String getSignature() 
 	{
@@ -65,39 +78,16 @@ public class VisitedMethodCompound extends VisitableMethodContext {
 	}
 	
 	@Override
-	public void setExceptions(String[] exceptions) 
-	{
-		this.mc.setExceptions(exceptions);
-	}
-	
-	@Override
-	public void setModifier(int modifier)
-	{
-		this.mc.setModifier(modifier);
-	}
-	
-	@Override
-	public void setName(String name)
-	{
-		this.mc.setName(name);
-	}
-	
-	@Override
-	public void setDescriptor(String descriptor)
-	{
-		this.mc.setDescriptor(descriptor);
-	}
-	
-	@Override
-	public void setSignature(String signature)
-	{
-		this.mc.setSignature(signature);
-	}
-	
 	public MethodVisitor getVisitor()
 	{
 		return super.mv;
 	}
 	
-	protected MethodContext mc;
+	@Override
+	public MethodContext getContext() 
+	{
+		return mc;
+	}
+	
+	protected final MethodContext mc;
 }

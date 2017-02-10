@@ -18,19 +18,19 @@ public class VisitableConstantClassContext extends MappedVisitableClassContext {
 	}
 	
 	@Override
-	protected VisitedFieldCompound newFieldCompound(int modifier, String name, String descriptor, String signature,
+	protected VisitedFieldConstantCompound newFieldCompound(int modifier, String name, String descriptor, String signature,
 			Object value, FieldVisitor fv) 
 	{
-		return new VisitedFieldCompound(
+		return new VisitedFieldConstantCompound(
 				new ConstantFieldContext(getName(), modifier, name, descriptor, signature, value),
 				fv);
 	}
 
 	@Override
-	protected VisitedMethodCompound newMethodCompound(int modifier, String name, String descriptor, String signature,
+	protected VisitedMethodConstantCompound newMethodCompound(int modifier, String name, String descriptor, String signature,
 			String[] exceptions, MethodVisitor mv) 
 	{
-		return new VisitedMethodCompound(
+		return new VisitedMethodConstantCompound(
 				new ConstantMethodContext(getName(), modifier, name, descriptor, signature, exceptions),
 				mv);
 	}

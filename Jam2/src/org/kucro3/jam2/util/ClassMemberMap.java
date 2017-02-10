@@ -1,6 +1,7 @@
 package org.kucro3.jam2.util;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -95,12 +96,12 @@ public class ClassMemberMap<_tMethodMapped, _tFieldMapped> {
 	
 	public Collection<_tFieldMapped> byFields()
 	{
-		return fieldMapped.values();
+		return Collections.unmodifiableCollection(fieldMapped.values());
 	}
 	
 	public Collection<_tMethodMapped> byMethods()
 	{
-		return methodMapped.values();
+		return Collections.unmodifiableCollection(methodMapped.values());
 	}
 	
 	public boolean mappedByField(String name)

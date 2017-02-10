@@ -52,11 +52,11 @@ public abstract class MappedVisitableClassContext extends AbstractVisitableClass
 	@Override
 	public Collection<MethodContext> getMethods() 
 	{
-		return (Collection<MethodContext>) map.byMethods();
+		return map.byMethods();
 	}
 	
 	@Override
-	public final FieldVisitor visitField(int access, String name, String desc, String signature, Object value)
+	public final VisitedFieldCompound visitField(int access, String name, String desc, String signature, Object value)
 	{
 		return newField(access, name, desc, signature, value);
 	}
@@ -75,7 +75,7 @@ public abstract class MappedVisitableClassContext extends AbstractVisitableClass
 			Object value, FieldVisitor fv);
 	
 	@Override
-	public final MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions)
+	public final VisitedMethodCompound visitMethod(int access, String name, String desc, String signature, String[] exceptions)
 	{
 		return newMethod(access, name, desc, signature, exceptions);
 	}

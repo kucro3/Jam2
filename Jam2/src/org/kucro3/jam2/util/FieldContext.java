@@ -1,5 +1,7 @@
 package org.kucro3.jam2.util;
 
+import org.objectweb.asm.FieldVisitor;
+
 public interface FieldContext extends AccessableContext {
 	Object getValue();
 	
@@ -21,5 +23,15 @@ public interface FieldContext extends AccessableContext {
 	
 	interface FullyModifiable extends Modifiable, AccessableContext.FullyModifiable
 	{
+	}
+	
+	interface Compound extends FieldContext
+	{
+		FieldContext getContext();
+	}
+	
+	interface Visited extends FieldContext
+	{
+		FieldVisitor getVisitor();
 	}
 }
