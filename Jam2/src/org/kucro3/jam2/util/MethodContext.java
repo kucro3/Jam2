@@ -7,9 +7,21 @@ public interface MethodContext extends AccessableContext {
 	
 	String getDeclaringClass();
 	
-	String getReturnType();
+	default String[] getArguments()
+	{
+		String desc;
+		if((desc = getDescriptor()) == null)
+			return null;
+		return new LazyDescriptorAnalyzer(desc).getArguments();
+	}
 	
-	String[] getArguments();
+	default String getReturnType()
+	{
+		String desc;
+		if((desc = getDescriptor()) == null)
+			return null;
+		return new LazyDescriptorAnalyzer(desc).getReturnType();
+	}
 	
 	default void setExceptions(String[] exceptions) {throw new UnsupportedOperationException();}
 	

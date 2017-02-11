@@ -59,6 +59,10 @@ public interface ClassContext {
 	
 	default void removeMethod(String fullDescriptor) {throw new UnsupportedOperationException();}
 	
+	boolean hasMethod();
+	
+	boolean hasField();
+	
 	default boolean containsMethod(String name, String descriptor)
 	{
 		return containsMethod(name + descriptor);
@@ -255,5 +259,9 @@ public interface ClassContext {
 	interface Compound extends ClassContext
 	{
 		ClassContext getContext();
+	}
+	
+	interface Visitable extends ClassContext
+	{
 	}
 }

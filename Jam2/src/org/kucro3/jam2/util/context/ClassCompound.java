@@ -24,6 +24,18 @@ public abstract class ClassCompound implements ClassContext.Compound {
 	}
 	
 	@Override
+	public boolean hasField()
+	{
+		return ref.hasField();
+	}
+	
+	@Override
+	public boolean hasMethod()
+	{
+		return ref.hasMethod();
+	}
+	
+	@Override
 	public String getDebug() 
 	{
 		return ref.getDebug();

@@ -6,9 +6,12 @@ import java.util.Objects;
 import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.FieldContext;
 import org.kucro3.jam2.util.MethodContext;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.TypePath;
 
 public abstract class VisitableClassContextCompound extends VisitableClassContext implements ClassContext.Compound {
 	public static VisitableClassContextCompound newCompound(ClassContext ref)
@@ -26,15 +29,38 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 			return new VisitableClassContextConstantCompound(ref, cv);
 	}
 	
-	VisitableClassContextCompound(ClassContext ref)
+	static VisitableClassContext asVisitable(ClassContext ctx)
 	{
-		this.ref = Objects.requireNonNull(ref);
+		if(ctx instanceof VisitableClassContext)
+			return (VisitableClassContext) ctx;
+		return null;
 	}
 	
-	VisitableClassContextCompound(ClassContext ref, ClassVisitor cv)
+	public VisitableClassContextCompound(ClassContext ref)
+	{
+		this(ref, null);
+	}
+	
+	public VisitableClassContextCompound(ClassContext ref, ClassVisitor cv)
 	{
 		super(cv);
 		this.ref = Objects.requireNonNull(ref);
+		this.visitableRef = asVisitable(ref);
+		
+		if(cv != null && visitableRef != null)
+			throw new IllegalStateException("Duplicated class visitor");
+	}
+	
+	@Override
+	public boolean hasField()
+	{
+		return ref.hasField();
+	}
+	
+	@Override
+	public boolean hasMethod()
+	{
+		return ref.hasMethod();
 	}
 	
 	@Override
@@ -140,9 +166,9 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	}
 
 	@Override
-	public final VisitedFieldCompound newField(int modifier, String name, String descriptor, String signature, Object value) 
+	public VisitedFieldCompound newField(int modifier, String name, String descriptor, String signature, Object value) 
 	{
-		FieldVisitor fv = super.visitField(modifier, name, descriptor, signature, value);
+		FieldVisitor fv = super_visitField(modifier, name, descriptor, signature, value);
 		FieldContext fc = ref.newField(modifier, name, descriptor, signature, value);
 		return newFieldCompound(fc, fv);
 	}
@@ -150,6 +176,8 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	@Override
 	public final VisitedFieldCompound visitField(int modifier, String name, String descriptor, String signature, Object value)
 	{
+		if(visitableRef != null)
+			return visitableRef.visitField(modifier, name, descriptor, signature, value);
 		return this.newField(modifier, name, descriptor, signature, value);
 	}
 	
@@ -159,10 +187,10 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	}
 	
 	@Override
-	public final VisitedMethodCompound newMethod(int modifier, String name, String descriptor, String signature,
+	public VisitedMethodCompound newMethod(int modifier, String name, String descriptor, String signature,
 			String[] exceptions)
 	{
-		MethodVisitor mv = super.visitMethod(modifier, name, descriptor, signature, exceptions);
+		MethodVisitor mv = super_visitMethod(modifier, name, descriptor, signature, exceptions);
 		MethodContext mc = ref.newMethod(modifier, name, descriptor, signature, exceptions);
 		return newMethodCompound(mc, mv);
 	}
@@ -171,6 +199,8 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	public final VisitedMethodCompound visitMethod(int modifier, String name, String descriptor, String signature,
 			String[] exceptions)
 	{
+		if(visitableRef != null)
+			return visitableRef.visitMethod(modifier, name, descriptor, signature, exceptions);
 		return this.newMethod(modifier, name, descriptor, signature, exceptions);
 	}
 	
@@ -185,5 +215,78 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 		return ref;
 	}
 	
+	@Override
+	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces)
+	{
+		if(visitableRef != null)
+			visitableRef.visit(version, access, name, signature, superName, interfaces);
+		else
+			super.visit(version, access, name, signature, superName, interfaces);
+	}
+	
+	@Override
+	public AnnotationVisitor visitAnnotation(String desc, boolean visible)
+	{
+		if(visitableRef != null)
+			return visitableRef.visitAnnotation(desc, visible);
+		return super.visitAnnotation(desc, visible);
+	}
+	
+	@Override
+	public void visitAttribute(Attribute attr)
+	{
+		if(visitableRef != null)
+			visitableRef.visitAttribute(attr);
+		else
+			super.visitAttribute(attr);
+	}
+	
+	@Override
+	public void visitEnd()
+	{
+		if(visitableRef != null)
+			visitableRef.visitEnd();
+		else
+			super.visitEnd();
+	}
+	
+	@Override
+	public void visitInnerClass(String name, String outerName, String innerName, int access)
+	{
+		if(visitableRef != null)
+			visitableRef.visitInnerClass(name, outerName, innerName, access);
+		else
+			super.visitInnerClass(name, outerName, innerName, access);
+	}
+	
+	@Override
+	public void visitOuterClass(String owner, String name, String desc)
+	{
+		if(visitableRef != null)
+			visitableRef.visitOuterClass(owner, name, desc);
+		else
+			super.visitOuterClass(owner, name, desc);
+	}
+	
+	@Override
+	public void visitSource(String source, String debug)
+	{
+		if(visitableRef != null)
+			visitableRef.visitSource(source, debug);
+		else
+			super.visitSource(source, debug);
+	}
+	
+	@Override
+	public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible)
+	{
+		if(visitableRef != null)
+			return visitableRef.visitTypeAnnotation(typeRef, typePath, desc, visible);
+		else
+			return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
+	}
+	
 	protected final ClassContext ref;
+	
+	protected final VisitableClassContext visitableRef;
 }

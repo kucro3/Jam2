@@ -36,6 +36,32 @@ public class VisitableFullyModifiableClassContext extends MappedVisitableClassCo
 				new FullyModifiableMethodContext(getName(), modifier, name, descriptor, signature, exceptions),
 				mv);
 	}
+	
+	@Override
+	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces)
+	{
+		setVersion(version);
+		setModifier(access);
+		setName(name);
+		setSignature(signature);
+		setSuperClass(superName);
+		setInterfaces(interfaces);
+	}
+	
+	@Override
+	public void visitSource(String source, String debug)
+	{
+		setSource(source);
+		setDebug(debug);
+	}
+	
+	@Override
+	public void visitOuterClass(String owner, String name, String desc)
+	{
+		setEnclosingClass(owner);
+		setEnclosingMethodName(name);
+		setEnclosingMethodDescriptor(desc);
+	}
 
 	@Override
 	public void setName(String name) 

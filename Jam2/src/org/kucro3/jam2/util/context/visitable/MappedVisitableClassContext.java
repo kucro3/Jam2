@@ -56,6 +56,18 @@ public abstract class MappedVisitableClassContext extends AbstractVisitableClass
 	}
 	
 	@Override
+	public boolean hasField()
+	{
+		return map.hasField();
+	}
+	
+	@Override
+	public boolean hasMethod()
+	{
+		return map.hasMethod();
+	}
+	
+	@Override
 	public final VisitedFieldCompound visitField(int access, String name, String desc, String signature, Object value)
 	{
 		return newField(access, name, desc, signature, value);
@@ -65,7 +77,7 @@ public abstract class MappedVisitableClassContext extends AbstractVisitableClass
 	public final VisitedFieldCompound newField(int modifier, String name, String descriptor, String signature, 
 			Object value)
 	{
-		FieldVisitor fv = super.visitField(modifier, name, descriptor, signature, value);
+		FieldVisitor fv = super_visitField(modifier, name, descriptor, signature, value);
 		VisitedFieldCompound vfc = newFieldCompound(modifier, name, descriptor, signature, value, fv);
 		map.putByField(name, vfc);
 		return vfc;
@@ -84,7 +96,7 @@ public abstract class MappedVisitableClassContext extends AbstractVisitableClass
 	public final VisitedMethodCompound newMethod(int modifier, String name, String descriptor, String signature,
 			String[] exceptions)
 	{
-		MethodVisitor mv = super.visitMethod(modifier, name, descriptor, signature, exceptions);
+		MethodVisitor mv = super_visitMethod(modifier, name, descriptor, signature, exceptions);
 		VisitedMethodCompound vmc = newMethodCompound(modifier, name, descriptor, signature, exceptions, mv);
 		map.putByMethod(name, descriptor, vmc);
 		return vmc;

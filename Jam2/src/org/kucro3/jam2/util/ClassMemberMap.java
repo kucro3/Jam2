@@ -155,6 +155,16 @@ public class ClassMemberMap<_tMethodMapped, _tFieldMapped> {
 		methodMapped.clear();
 	}
 	
+	public boolean hasField()
+	{
+		return fieldMapped.isEmpty();
+	}
+	
+	public boolean hasMethod()
+	{
+		return methodMapped.isEmpty();
+	}
+	
 	@ImplicitThrows(IllegalArgumentException.class) 
 	static void checkDuplication(Map<String, ?> map, String key, String msg) 
 	{

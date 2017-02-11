@@ -176,6 +176,19 @@ public class FullyModifiableClassContext extends AbstractClassContext implements
 		return map.byMethods();
 	}
 	
+
+	@Override
+	public boolean hasMethod() 
+	{
+		return map.hasMethod();
+	}
+
+	@Override
+	public boolean hasField() 
+	{
+		return map.hasField();
+	}
+	
 	protected String name;
 	
 	protected ClassMemberMap<MethodContext, FieldContext> map;

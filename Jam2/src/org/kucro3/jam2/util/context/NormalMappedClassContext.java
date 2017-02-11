@@ -19,6 +19,18 @@ public abstract class NormalMappedClassContext extends NormalClassContext {
 	}
 	
 	@Override
+	public boolean hasField()
+	{
+		return map.hasField();
+	}
+	
+	@Override
+	public boolean hasMethod()
+	{
+		return map.hasMethod();
+	}
+	
+	@Override
 	public boolean containsField(String name)
 	{
 		return map.mappedByField(name);
