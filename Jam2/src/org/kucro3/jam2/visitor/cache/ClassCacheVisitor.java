@@ -2,14 +2,20 @@ package org.kucro3.jam2.visitor.cache;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.Objects;
 
-import org.kucro3.jam2.util.Jam2Util;
-import org.kucro3.jam2.util.Version;
+import org.kucro3.jam2.util.FieldContext;
+import org.kucro3.jam2.util.MethodContext;
 import org.kucro3.jam2.util.annotation.Annotation;
 import org.kucro3.jam2.util.annotation.AnnotationContainer;
 import org.kucro3.jam2.util.annotation.TypeAnnotation;
+import org.kucro3.jam2.util.context.FullyModifiableFieldContext;
+import org.kucro3.jam2.util.context.FullyModifiableMethodContext;
+import org.kucro3.jam2.util.context.visitable.VisitableFullyModifiableClassContext;
+import org.kucro3.jam2.util.context.visitable.VisitedFieldCompound;
+import org.kucro3.jam2.util.context.visitable.VisitedFieldFullyModifiableCompound;
+import org.kucro3.jam2.util.context.visitable.VisitedMethodCompound;
+import org.kucro3.jam2.util.context.visitable.VisitedMethodFullyModifiableCompound;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
@@ -17,15 +23,15 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.TypePath;
 import org.objectweb.asm.MethodVisitor;
 
-public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, ClassRevisitable {
+public class ClassCacheVisitor extends VisitableFullyModifiableClassContext implements CacheVisitor, ClassRevisitable {
 	public ClassCacheVisitor() 
 	{
-		super(Version.getASMVersion());
+		super();
 	}
 	
 	public ClassCacheVisitor(ClassVisitor cv)
 	{
-		super(Version.getASMVersion(), cv);
+		super(cv);
 	}
 
 	@Override
@@ -33,42 +39,23 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	{
 		attrs.clear();
 		annos.clearAnnotations();
-		fields.clear();
-		methods.clear();
+		map.clearFieldMapped();
+		map.clearMethodMapped();
 		endVisited = false;
-		outerClass = null;
 		innerClasses.clear();
+		
+		debug = null;
 		source = null;
-	}
-	
-	@Override
-	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces)
-	{
-		ess.version = version;
-		ess.access = access;
-		ess.name = name;
-		ess.signature = signature;
-		ess.superName = superName;
-		ess.interfaces = interfaces;
-	}
-	
-	@Override
-	public void visitSource(String source, String debug)
-	{
-		if(this.source == null)
-			this.source = new InfoSourceContainer();
-		this.source.source = source;
-		this.source.debug = debug;
-	}
-	
-	@Override
-	public void visitOuterClass(String owner, String name, String desc)
-	{
-		if(outerClass == null)
-			outerClass = new InfoOuterClassContainer();
-		outerClass.owner = owner;
-		outerClass.name = name;
-		outerClass.desc = desc;
+		enclosingClass = null;
+		enclosingMethodName = null;
+		enclosingMethodDescriptor = null;
+		interfaces = null;
+		modifier = 0;
+		name = null;
+		signature = null;
+		source = null;
+		superName = null;
+		version = 0;
 	}
 	
 	@Override
@@ -108,67 +95,16 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		return acv;
 	}
 	
-	@Override
-	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value)
-	{
-		return newField(access, name, desc, signature, value).fcv;
-	}
-	
-	public FieldContainer newField(int access, String name, String desc, String signature, Object value)
-	{
-		FieldVisitor fv = super.visitField(access, name, desc, signature, value);
-		FieldCacheVisitor fcv = new FieldCacheVisitor(fv);
-		FieldContainer fc = new FieldContainer(name);
-		fc.access = access;
-		fc.desc = desc;
-		fc.signature = signature;
-		fc.value = value;
-		fc.fcv = fcv;
-		fields.put(fc.name, fc);
-		return fc;
-	}
-	
-	@Override
-	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions)
-	{
-		return newMethod(access, name, desc, signature, exceptions).mcv;
-	}
-	
-	public MethodContainer newMethod(int access, String name, String desc, String signature, String[] exceptions)
-	{
-		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-		MethodCacheVisitor mcv = new MethodCacheVisitor(mv);
-		MethodContainer mc = new MethodContainer(name, desc);
-		mc.access = access;
-		mc.signature = signature;
-		mc.exceptions = exceptions;
-		mc.mcv = mcv;
-		methods.put(mc.fullDesc, mc);
-		return mc;
-	}
-	
-	public ClassEssentialsContainer getEssentials()
-	{
-		return ess;
-	}
-	
-	public InfoOuterClassContainer getOuterClass()
-	{
-		return outerClass;
-	}
-	
 	public void clearOuterClass()
 	{
-		outerClass = null;
-	}
-	
-	public InfoSourceContainer getSource()
-	{
-		return source;
+		enclosingClass = null;
+		enclosingMethodName = null;
+		enclosingMethodDescriptor = null;
 	}
 	
 	public void clearSource()
 	{
+		debug = null;
 		source = null;
 	}
 	
@@ -197,19 +133,9 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		attrs.clear();
 	}
 	
-	public FieldContainer getField(String name)
-	{
-		return fields.get(name);
-	}
-	
-	public void removeField(String name)
-	{
-		fields.remove(name);
-	}
-	
 	public void clearFields()
 	{
-		fields.clear();
+		map.clearFieldMapped();
 	}
 	
 	public AnnotationContainer getAnnotationContainer()
@@ -217,29 +143,9 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 		return annos;
 	}
 	
-	public MethodContainer getMethod(String name, String returnType, String[] arguments)
-	{
-		return getMethod(Jam2Util.toDescriptor(name, returnType, arguments));
-	}
-	
-	public MethodContainer getMethod(String desc)
-	{
-		return methods.get(desc);
-	}
-	
-	public void removeMethod(String name, String returnType, String[] arguments)
-	{
-		removeMethod(Jam2Util.toDescriptor(name, returnType, arguments));
-	}
-	
-	public void removeMethod(String desc)
-	{
-		methods.remove(desc);
-	}
-	
 	public void clearMethods()
 	{
-		methods.clear();
+		map.clearMethodMapped();
 	}
 	
 	@Override
@@ -251,21 +157,21 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	@Override
 	public void revisitEssentials(ClassVisitor cv)
 	{
-		cv.visit(ess.version, ess.access, ess.name, ess.signature, ess.superName, ess.interfaces);
+		cv.visit(version, modifier, name, signature, superName, interfaces);
 	}
 	
 	@Override
 	public void revisitSource(ClassVisitor cv)
 	{
 		if(source != null)
-			cv.visitSource(source.source, source.debug);
+			cv.visitSource(source, debug);
 	}
 	
 	@Override
 	public void revisitOuterClass(ClassVisitor cv)
 	{
-		if(outerClass != null)
-			cv.visitOuterClass(outerClass.owner, outerClass.name, outerClass.desc);
+		if(enclosingClass != null)
+			cv.visitOuterClass(enclosingClass, enclosingMethodName, enclosingMethodDescriptor);
 	}
 	
 	@Override
@@ -290,15 +196,33 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 	@Override
 	public void revisitFields(ClassVisitor cv)
 	{
-		for(FieldContainer fc : fields.values())
-			RevisitationHelper.revisitOptional(fc.fcv, cv.visitField(fc.access, fc.name, fc.desc, fc.signature, fc.value));
+		for(FieldContext fc : super.getFields())
+		{
+			CachedField cf = (CachedField) fc;
+			RevisitationHelper.revisitOptional(cf.getVisitor(),
+					cv.visitField(
+							fc.getModifier(),
+							fc.getName(),
+							fc.getDescriptor(),
+							fc.getSignature(), 
+							fc.getValue()));
+		}
 	}
 	
 	@Override
 	public void revisitMethods(ClassVisitor cv)
 	{
-		for(MethodContainer mc : methods.values())
-			RevisitationHelper.revisitOptional(mc.mcv, cv.visitMethod(mc.access, mc.name, mc.desc, mc.signature, mc.exceptions));
+		for(MethodContext mc : super.getMethods())
+		{
+			CachedMethod cm = (CachedMethod) mc;
+			RevisitationHelper.revisitOptional(cm.getVisitor(), 
+					cv.visitMethod(
+							cm.getModifier(),
+							cm.getName(),
+							cm.getDescriptor(),
+							cm.getSignature(),
+							cm.getExceptions()));
+		}
 	}
 	
 	@Override
@@ -308,107 +232,155 @@ public class ClassCacheVisitor extends ClassVisitor implements CacheVisitor, Cla
 			cv.visitEnd();
 	}
 	
+	@Override
+	protected VisitedFieldCompound newFieldCompound(int modifier, String name, String descriptor, String signature,
+			Object value, FieldVisitor fv) 
+	{
+		return new CachedField(
+				new FullyModifiableFieldContext(
+						getName(),
+						modifier,
+						name,
+						descriptor,
+						signature,
+						value),
+				new FieldCacheVisitor(fv));
+	}
+
+	@Override
+	protected VisitedMethodCompound newMethodCompound(int modifier, String name, String descriptor, String signature,
+			String[] exceptions, MethodVisitor mv) 
+	{
+		return new CachedMethod(
+				new FullyModifiableMethodContext(
+						getName(),
+						modifier,
+						name,
+						descriptor,
+						signature,
+						exceptions),
+				new MethodCacheVisitor(mv));
+	}
+	
 	protected final AttributeCache attrs = new AttributeCache();
 	
-	protected final ClassEssentialsContainer ess = new ClassEssentialsContainer();
-	
-	protected InfoOuterClassContainer outerClass;
-	
 	protected final List<InfoInnerClassContainer> innerClasses = new ArrayList<>();
-	
-	protected InfoSourceContainer source;
 	
 	protected boolean endVisited;
 	
 	protected final AnnotationContainer annos = new AnnotationContainer();
 	
-	protected final Map<String, FieldContainer> fields = new HashMap<>();
-	
-	protected final Map<String, MethodContainer> methods = new HashMap<>();
-	
-	public class ClassEssentialsContainer
-	{
-		public int version;
-		
-		public int access;
-		
-		public String name;
-		
-		public String signature;
-		
-		public String superName;
-		
-		public String[] interfaces;
-	}
-	
-	public class InfoOuterClassContainer
-	{
-		public String owner;
-		
-		public String name;
-		
-		public String desc;
-	}
-	
-	public class InfoSourceContainer
-	{
-		public String source;
-		
-		public String debug;
-	}
-	
 	public class InfoInnerClassContainer
 	{
-		public String name;
-		
-		public String outerName;
-		
-		public String innerName;
-		
-		public int access;
-	}
-	
-	public class MethodContainer
-	{
-		public MethodContainer(String name, String desc)
+		public String getName()
 		{
-			this.name = name;
-			this.desc = desc;
-			this.fullDesc = name + desc;
+			return name;
 		}
 		
-		public int access;
-		
-		public final String name;
-		
-		public final String desc;
-		
-		public String signature;
-		
-		public String[] exceptions;
-		
-		public final String fullDesc;
-		
-		public MethodCacheVisitor mcv;
-	}
-	
-	public class FieldContainer
-	{
-		public FieldContainer(String name)
+		public String getOuterName()
 		{
-			this.name = name;
+			return outerName;
 		}
 		
-		public int access;
+		public String getInnerName()
+		{
+			return innerName;
+		}
 		
-		public final String name;
+		public int getModifier()
+		{
+			return modifier;
+		}
 		
-		public String desc;
+		public void setName(String name)
+		{
+			this.name = Objects.requireNonNull(name);
+		}
 		
-		public String signature;
+		public void setOuterName(String name)
+		{
+			this.outerName = name;
+		}
 		
-		public Object value;
+		public void setInnerName(String name)
+		{
+			this.innerName = name;
+		}
 		
-		public FieldCacheVisitor fcv;
+		public void setModifier(int access)
+		{
+			this.access = access;
+		}
+		
+		String name;
+		
+		String outerName;
+		
+		String innerName;
+		
+		int access;
+	}
+	
+	protected class CachedMethod extends VisitedMethodFullyModifiableCompound
+	{
+		public CachedMethod(MethodContext.FullyModifiable mc, MethodCacheVisitor mv)
+		{
+			super(mc, mv);
+		}
+		
+		@Override
+		public void setName(String name)
+		{
+			ensureRename(name, getDescriptor());
+			super.setName(name);
+		}
+		
+		@Override
+		public void setDescriptor(String descriptor)
+		{
+			ensureRename(getName(), descriptor);
+			super.setDescriptor(descriptor);
+		}
+		
+		protected final void ensureRename(String name, String descriptor)
+		{
+			ClassCacheVisitor ccv = ClassCacheVisitor.this;
+			ccv.map.putByMethod(name + descriptor, this); // throwable point
+			ccv.map.removeByMethod(getName() + getDescriptor());
+		}
+		
+		@Override
+		public MethodCacheVisitor getVisitor()
+		{
+			return (MethodCacheVisitor) super.getVisitor();
+		}
+	}
+	
+	protected class CachedField extends VisitedFieldFullyModifiableCompound
+	{
+		public CachedField(FieldContext.FullyModifiable fc, FieldCacheVisitor fv)
+		{
+			super(fc, fv);
+		}
+		
+		@Override
+		public void setName(String name)
+		{
+			ensureRename(name);
+			super.setName(name);
+		}
+		
+		protected final void ensureRename(String name)
+		{
+			ClassCacheVisitor ccv = ClassCacheVisitor.this;
+			ccv.map.putByField(name, this); // throwable point
+			ccv.map.removeByField(getName());
+		}
+		
+		@Override
+		public FieldCacheVisitor getVisitor()
+		{
+			return (FieldCacheVisitor) super.getVisitor();
+		}
 	}
 }
