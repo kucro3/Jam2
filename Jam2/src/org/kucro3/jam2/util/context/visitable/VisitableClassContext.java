@@ -18,6 +18,14 @@ public abstract class VisitableClassContext extends ClassVisitor implements Clas
 	}
 	
 	@Override
+	public abstract VisitedMethodCompound newMethod(int modifier, String name, String descriptor, String signature,
+			String[] exceptions);
+	
+	@Override
+	public abstract VisitedFieldCompound newField(int modifier, String name, String descriptor, String signature, 
+			Object value);
+	
+	@Override
 	public abstract VisitedFieldCompound visitField(int modifier, String name, String descriptor, String signature, 
 			Object value);
 	

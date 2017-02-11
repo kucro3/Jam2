@@ -168,6 +168,8 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	@Override
 	public VisitedFieldCompound newField(int modifier, String name, String descriptor, String signature, Object value) 
 	{
+		if(visitableRef != null)
+			return visitableRef.newField(modifier, name, descriptor, signature, value);
 		FieldVisitor fv = super_visitField(modifier, name, descriptor, signature, value);
 		FieldContext fc = ref.newField(modifier, name, descriptor, signature, value);
 		return newFieldCompound(fc, fv);
@@ -190,6 +192,8 @@ public abstract class VisitableClassContextCompound extends VisitableClassContex
 	public VisitedMethodCompound newMethod(int modifier, String name, String descriptor, String signature,
 			String[] exceptions)
 	{
+		if(visitableRef != null)
+			return visitableRef.newMethod(modifier, name, descriptor, signature, exceptions);
 		MethodVisitor mv = super_visitMethod(modifier, name, descriptor, signature, exceptions);
 		MethodContext mc = ref.newMethod(modifier, name, descriptor, signature, exceptions);
 		return newMethodCompound(mc, mv);

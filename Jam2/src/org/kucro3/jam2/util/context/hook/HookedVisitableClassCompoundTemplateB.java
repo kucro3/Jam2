@@ -5,7 +5,7 @@ import org.objectweb.asm.ClassVisitor;
 
 import static org.kucro3.jam2.util.context.hook.Action.*;
 
-public class HookedVisitableClassCompoundTemplateB extends HookedVisitableClassCompoundTemplateA {
+abstract class HookedVisitableClassCompoundTemplateB extends HookedVisitableClassCompoundTemplateA {
 	HookedVisitableClassCompoundTemplateB(ClassContext ref, ClassVisitor cv)
 	{
 		super(ref, cv);

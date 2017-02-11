@@ -357,6 +357,7 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 	@Override
 	public void visitTypeInsn(int opcode, String type)
 	{
+		super.visitTypeInsn(opcode, type);
 		switch(opcode)
 		{
 		case NEW:			;						push(LENGTH_OBJECT);	break;
@@ -372,6 +373,7 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 	@Override
 	public void visitVarInsn(int opcode, int var)
 	{
+		super.visitVarInsn(opcode, var);
 		if(opcode >= ILOAD && opcode <= ALOAD)
 		{
 			load(var);
@@ -399,6 +401,7 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 	@Override
 	public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs)
 	{
+		super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
 		pop(fastGetArgumentRequirement(desc));
 		push(fastGetReturnRequirement(desc));
 	}
@@ -437,7 +440,7 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 	{
 		if(length == 0)
 			return;
-		maxStack =  Math.max(stacks = requireStack(length), maxStack);
+		maxStack = Math.max(stacks = requireStack(length), maxStack);
 	}
 	
 	public int getCurrentLocalMax()
@@ -464,6 +467,12 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 	public void visitMaxs()
 	{
 		visitMaxs(getCurrentStackMax(), getCurrentLocalMax());
+	}
+	
+	public void visitMaxs(String descriptor, boolean isStatic)
+	{
+		requireLocal(fastGetArgumentRequirement(descriptor) + (isStatic ? 0 : 1));
+		visitMaxs();
 	}
 	
 	public static final int LENGTH_DEFAULT = 1;

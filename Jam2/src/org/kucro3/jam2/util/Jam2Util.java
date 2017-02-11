@@ -103,8 +103,9 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		boolean selfStatic = Modifier.isStatic(modifiers);
 		String[] arguments = varargs ? new String[] {"[Ljava/lang/Object;"}
 				: constructorArguments;
-		MethodVisitor _mv = _newMethod(cw, modifiers, methodName, 
-				objReturn ? "Ljava/lang/Object;" : Type.getObjectType(type).getDescriptor(), arguments, exceptions);
+		String selfDescriptor = 
+				Jam2Util.toDescriptor("", objReturn ? "Ljava/lang/Object;" : Type.getObjectType(type).getDescriptor(), arguments);
+		MethodVisitor _mv = cw.visitMethod(modifiers, methodName, selfDescriptor, null, exceptions);
 		MaxsComputer mv = new MaxsComputer(_mv);
 		
 		mv.visitTypeInsn(NEW, type);
@@ -113,7 +114,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 				varargs, true, selfStatic, -1);
 		mv.visitMethodInsn(INVOKESPECIAL, type, "<init>", descriptor, false);
 		mv.visitInsn(ARETURN);
-		mv.visitMaxs();
+		mv.visitMaxs(selfDescriptor, selfStatic);
 		mv.visitEnd();
 	}
 	
@@ -136,8 +137,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		boolean selfStatic = (modifiers & ACC_STATIC) != 0;
 		int delta = selfStatic ? -1 : 0;
-		MethodVisitor _mv = _newMethod(cw, modifiers, name, objReturn ? "Ljava/lang/Object;" : type, 
-				objArg ? "Ljava/lang/Object;" : Type.getObjectType(ownerInternalName).getDescriptor(), null);
+		String selfDescriptor =
+				Jam2Util.toDescriptor("",
+						objReturn ? "Ljava/lang/Object;" : type,
+						new String[] {objArg ? "Ljava/lang/Object;" : Type.getObjectType(ownerInternalName).getDescriptor()});
+		MethodVisitor _mv = cw.visitMethod(modifiers, name, selfDescriptor, null, null);
 		MaxsComputer mv = new MaxsComputer(_mv);
 		mv.visitCode();
 		if(!ft.isStatic())
@@ -153,7 +157,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		}
 		else
 			mv.visitInsn(_forReturnInsn(type));
-		mv.visitMaxs();
+		mv.visitMaxs(selfDescriptor, selfStatic);
 		mv.visitEnd();
 	}
 	
@@ -176,8 +180,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{		
 		boolean selfStatic = (modifiers & ACC_STATIC) != 0;
 		int delta = selfStatic ? -1 : 0;
-		MethodVisitor _mv = _newMethod(cw, modifiers, name, DESCRIPTOR_VOID,
-				new String[] {"Ljava/lang/Object;", objArgument ? "Ljava/lang/Object;" : type}, null);
+		String selfDescriptor = 
+				Jam2Util.toDescriptor("",
+						DESCRIPTOR_VOID, 
+						new String[] {"Ljava/lang/Object;", objArgument ? "Ljava/lang/Object;" : type});
+		MethodVisitor _mv = cw.visitMethod(modifiers, name, selfDescriptor, null, null);
 		MaxsComputer mv = new MaxsComputer(_mv);
 		mv.visitCode();
 		if(!ft.isStatic())
@@ -199,7 +206,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		}
 		mv.visitFieldInsn(ft.put(), ownerInternalName, fieldName, type);
 		mv.visitInsn(RETURN);
-		mv.visitMaxs();
+		mv.visitMaxs(selfDescriptor, selfStatic);
 		mv.visitEnd();
 	}
 	
@@ -225,7 +232,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			mv.visitVarInsn(ALOAD, 0);
 		mv.visitFieldInsn(ft.get(), ownerInternalName, fieldname, type);
 		mv.visitInsn(_forReturnInsn(type));
-		mv.visitMaxs();
+		mv.visitMaxs("()" + type, ft.isStatic());
 		mv.visitEnd();
 	}
 	
@@ -252,7 +259,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		mv.visitVarInsn(_forLocalLoadInsn(type), 1);
 		mv.visitFieldInsn(ft.put(), ownerInternalName, fieldname, type);
 		mv.visitInsn(RETURN);
-		mv.visitMaxs();
+		mv.visitMaxs("(" + type + ")" + DESCRIPTOR_VOID, ft.isStatic());
 		mv.visitEnd();
 	}
 	
@@ -331,7 +338,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		_pushCallerProcessCalling(mv, insn, lambda3.function(callingClass), methodName, callingDescriptor, ct.getFlag());
 		_pushCallerProcessReturn(mv, returnTypeDescriptor, objReturn, isVoid);
 		
-		mv.visitMaxs();
+		mv.visitMaxs(descriptor, Modifier.isStatic(modifiers));
 		mv.visitEnd();
 	}
 	
@@ -893,6 +900,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	}
 	
 	public static String toConstructorDescriptor(Class<?>[] arguments)
+	{
+		return toDescriptor("", void.class, arguments);
+	}
+	
+	public static String toConstructorFullDescriptor(Class<?>[] arguments)
 	{
 		return toDescriptor("<init>", void.class, arguments);
 	}

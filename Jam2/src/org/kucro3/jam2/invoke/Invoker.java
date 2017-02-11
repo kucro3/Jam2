@@ -2,6 +2,7 @@ package org.kucro3.jam2.invoke;
 
 import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaGet;
 import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaSet;
+import org.kucro3.jam2.simulator.MaxsComputer;
 import org.kucro3.jam2.util.FieldContext;
 import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.LambdaContext;
@@ -58,25 +59,28 @@ public class Invoker implements Opcodes {
 			return;
 		}
 
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-		VisitableClassContext initClassCtx = new VisitableConstantClassContext();
+		ClassWriter cw = new ClassWriter(0);
+		VisitableClassContext initClassCtx = new VisitableConstantClassContext(cw);
 		initClassCtx.visit(V1_8, ACC_PUBLIC, initClassName, null, "org/kucro3/jam2/invoke/Initializer", null);
 		
-		VisitedMethodCompound mInitFields 
-				= (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeFields", void.class, new Class<?>[] {Invoker.class, Field[].class});
-		VisitedMethodCompound mInitMethods
-				= (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeMethods", void.class, new Class<?>[] {Invoker.class, Method[].class});
-		VisitedMethodCompound mInitConstructors
-				= (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeConstructors", void.class, new Class<?>[] {Invoker.class, Constructor[].class});
-		VisitedMethodCompound mInitConstructor
-				= (VisitedMethodCompound) initClassCtx.newConstructor(ACC_PUBLIC, new Class<?>[] {});
+		VisitedMethodCompound // ->
+				mInitFieldsCtx,
+				mInitMethodsCtx,
+				mInitConstructorsCtx;
 		
-		mInitConstructor.visitCode();
-		mInitConstructor.visitVarInsn(ALOAD, 0);
-		mInitConstructor.visitMethodInsn(INVOKESPECIAL, "org/kucro3/jam2/invoke/Initializer", "<init>", "()V", false);
-		mInitConstructor.visitInsn(RETURN);
-		mInitConstructor.visitMaxs(0, 0);
-		mInitConstructor.visitEnd();
+		MaxsComputer mInitFields = new MaxsComputer(
+				mInitFieldsCtx = (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeFields",
+						void.class, new Class<?>[] {Invoker.class, Field[].class}));
+		
+		MaxsComputer mInitMethods = new MaxsComputer(
+				mInitMethodsCtx = (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeMethods",
+						void.class, new Class<?>[] {Invoker.class, Method[].class}));
+		
+		MaxsComputer mInitConstructors = new MaxsComputer(
+				mInitConstructorsCtx = (VisitedMethodCompound) initClassCtx.newMethod(ACC_PUBLIC, "initializeConstructors",
+						void.class, new Class<?>[] {Invoker.class, Constructor[].class}));
+		
+		Jam2Util.pushEmptyConstructor(initClassCtx, ACC_PUBLIC, Initializer.class);
 		
 		Field[] fields = clz.getFields();
 		mInitFields.visitCode();
@@ -110,7 +114,7 @@ public class Invoker implements Opcodes {
 					+ ")V", false);
 		}
 		mInitFields.visitInsn(RETURN);
-		mInitFields.visitMaxs(0, 0);
+		mInitFields.visitMaxs(mInitFieldsCtx.getDescriptor(), false);
 		mInitFields.visitEnd();
 		
 		Method[] methods = clz.getMethods();
@@ -140,7 +144,7 @@ public class Invoker implements Opcodes {
 					+ ")V", false);
 		}
 		mInitMethods.visitInsn(RETURN);
-		mInitMethods.visitMaxs(0, 0);
+		mInitMethods.visitMaxs(mInitMethodsCtx.getDescriptor(), false);
 		mInitMethods.visitEnd();
 		
 		Constructor[] constructors = clz.getConstructors();
@@ -170,7 +174,7 @@ public class Invoker implements Opcodes {
 					+ ")V", false);
 		}
 		mInitConstructors.visitInsn(RETURN);
-		mInitConstructors.visitMaxs(0, 0);
+		mInitConstructors.visitMaxs(mInitConstructorsCtx.getDescriptor(), false);
 		mInitConstructors.visitEnd();
 		
 		this.initClass = Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(initClassCtx.getName()), cw);

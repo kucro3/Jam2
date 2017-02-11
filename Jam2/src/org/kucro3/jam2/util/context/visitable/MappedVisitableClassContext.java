@@ -105,5 +105,5 @@ public abstract class MappedVisitableClassContext extends AbstractVisitableClass
 	protected abstract VisitedMethodCompound newMethodCompound(int modifier, String name, String descriptor, String signature,
 			String[] exceptions, MethodVisitor mv);
 	
-	protected ClassMemberMap<MethodContext, FieldContext> map;
+	protected ClassMemberMap<MethodContext, FieldContext> map = new ClassMemberMap<>();
 }

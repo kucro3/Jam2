@@ -82,6 +82,7 @@ public abstract class AbstractVisitableClassContext extends VisitableClassContex
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces)
 	{
+		super.visit(version, access, name, signature, superName, interfaces);
 		this.version = version;
 		this.modifier = access;
 		this.name = name;
@@ -93,6 +94,7 @@ public abstract class AbstractVisitableClassContext extends VisitableClassContex
 	@Override
 	public void visitSource(String source, String debug)
 	{
+		super.visitSource(source, debug);
 		this.source = source;
 		this.debug = debug;
 	}
@@ -100,6 +102,7 @@ public abstract class AbstractVisitableClassContext extends VisitableClassContex
 	@Override
 	public void visitOuterClass(String owner, String name, String desc)
 	{
+		super.visitOuterClass(owner, name, desc);
 		this.enclosingClass = owner;
 		this.enclosingMethodName = name;
 		this.enclosingMethodDescriptor = desc;
