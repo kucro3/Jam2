@@ -10,6 +10,7 @@
 * [#] 巨大多更新
 * [+] org.kucro3.jam2.simulator
 * [+] org.kucro3.jam2.util.context
+* [+] org.kucro3.jam2.util.context.hook
 * [+] org.kucro3.jam2.util.context.visitable
 
 ### Preview #17013103
