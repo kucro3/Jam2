@@ -72,6 +72,7 @@ public class ClassCacheVisitor extends VisitableFullyModifiableClassContext impl
 	@Override
 	public void visitAttribute(Attribute attr)
 	{
+		super.visitAttribute(attr);
 		attrs.visitAttribute(attr);
 	}
 	

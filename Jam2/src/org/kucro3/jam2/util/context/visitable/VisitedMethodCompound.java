@@ -17,16 +17,29 @@ public abstract class VisitedMethodCompound extends AbstractVisitableMethodConte
 			return new VisitedMethodConstantCompound(mc, mv);
 	}
 	
+	static VisitedMethodCompound asVisitable(MethodContext mc)
+	{
+		if(mc instanceof VisitedMethodCompound)
+			return (VisitedMethodCompound) mc;
+		return null;
+	}
+	
 	public VisitedMethodCompound(MethodContext mc, MethodVisitor mv)
 	{
 		super(mv);
 		this.mc = Objects.requireNonNull(mc);
+		
+		VisitedMethodCompound visitableRef = asVisitable(mc);
+		if(visitableRef != null)
+			if(mv != null)
+				throw new IllegalStateException("Duplicated method visitor");
+			else
+				super.mv = visitableRef;
 	}
 	
 	public VisitedMethodCompound(MethodContext mc)
 	{
-		super();
-		this.mc = Objects.requireNonNull(mc);
+		this(mc, null);
 	}
 
 	@Override

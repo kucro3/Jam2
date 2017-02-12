@@ -17,16 +17,29 @@ public abstract class VisitedFieldCompound extends AbstractVisitableFieldContext
 			return new VisitedFieldConstantCompound(fc, fv);
 	}
 	
+	static VisitedFieldCompound asVisitable(FieldContext fc)
+	{
+		if(fc instanceof VisitedFieldCompound)
+			return (VisitedFieldCompound) fc;
+		return null;
+	}
+	
 	public VisitedFieldCompound(FieldContext fc, FieldVisitor fv)
 	{
 		super(fv);
 		this.fc = Objects.requireNonNull(fc);
+		
+		VisitedFieldCompound visitableRef = asVisitable(fc);
+		if(visitableRef != null)
+			if(fv != null)
+				throw new IllegalStateException("Duplicated field context");
+			else
+				super.fv = visitableRef;
 	}
 	
 	public VisitedFieldCompound(FieldContext fc)
 	{
-		super();
-		this.fc = Objects.requireNonNull(fc);
+		this(fc, null);
 	}
 	
 	@Override
