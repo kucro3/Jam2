@@ -21,11 +21,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-/**
- * COMPUTE_MAXS flag required.
- * @author Administrator
- *
- */
 public final class Jam2Util extends ClassLoader implements Opcodes {
 	private Jam2Util()
 	{

@@ -1,6 +1,9 @@
 package org.kucro3.jam2.simulator;
 
+import java.lang.reflect.Modifier;
+
 import org.kucro3.jam2.util.Version;
+import org.kucro3.jam2.util.context.visitable.VisitedMethodCompound;
 import org.kucro3.util.exception.RuntimeExceptions;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -11,6 +14,17 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 	public MaxsComputer(MethodVisitor mv) 
 	{
 		super(Version.getASMVersion(), mv);
+	}
+	
+	public MaxsComputer(MethodVisitor mv, String descriptor, boolean isStatic)
+	{
+		this(mv);
+		requireLocal(fastGetArgumentRequirement(descriptor) + (isStatic ? 0 : 1));
+	}
+	
+	public MaxsComputer(VisitedMethodCompound vmc)
+	{
+		this(vmc, vmc.getDescriptor(), Modifier.isStatic(vmc.getModifier()));
 	}
 	
 	public MaxsComputer() 
@@ -26,7 +40,7 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 			for(int i = index + 1; i < descriptor.length(); i++)
 				if((temp = descriptor.charAt(i)) == ')')
 					return length;
-				else if(temp == 'L')
+				else if(temp == 'L' || temp == '[')
 					if((i = descriptor.indexOf(';', i)) != -1)
 						length += LENGTH_OBJECT;
 					else

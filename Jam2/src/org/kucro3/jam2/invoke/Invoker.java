@@ -13,7 +13,6 @@ import org.kucro3.jam2.util.context.visitable.VisitableConstantClassContext;
 import org.kucro3.jam2.util.context.visitable.VisitedMethodCompound;
 import org.kucro3.jam2.util.Jam2Util.CallingType;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,8 +22,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Constructor;
 
+import static org.objectweb.asm.Opcodes.*;
+
 @SuppressWarnings("rawtypes")
-public class Invoker implements Opcodes {
+public class Invoker {
 	private Invoker(Class<?> owner)
 	{
 		this.owner = owner;
@@ -87,6 +88,7 @@ public class Invoker implements Opcodes {
 		for(int i = 0; i < fields.length; i++)
 		{
 			Field field = fields[i];
+			System.out.println(field);
 			FieldContext fCtx = Contexts.newFieldConstant(field);
 			
 			mInitFields.visitVarInsn(ALOAD, 1);
