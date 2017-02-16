@@ -13,7 +13,7 @@ public abstract class HookedMethodCompound extends MethodCompound {
 			ret = new HookedMethodFullyModifiableCompound((MethodContext.FullyModifiable) ctx);
 		else
 			ret = new HookedMethodConstantCompound(ctx);
-		ret.hooks.hook(funcs);
+		ret.hook(funcs);
 		return ret;
 	}
 	

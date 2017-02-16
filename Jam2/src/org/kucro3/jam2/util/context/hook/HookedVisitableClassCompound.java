@@ -15,7 +15,7 @@ public abstract class HookedVisitableClassCompound extends VisitableClassContext
 			ret = new HookedVisitableClassFullyModifiableCompound((ClassContext.FullyModifiable) vcc);
 		else
 			ret = new HookedVisitableClassConstantCompound(vcc);
-		ret.hooks.hook(funcs);
+		ret.hook(funcs);
 		return ret;
 	}
 	

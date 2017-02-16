@@ -13,7 +13,7 @@ public abstract class HookedFieldCompound extends FieldCompound {
 			ret = new HookedFieldFullyModifiableCompound((FieldContext.FullyModifiable) ctx);
 		else
 			ret = new HookedFieldConstantCompound(ctx);
-		ret.hooks.hook(funcs);
+		ret.hook(funcs);
 		return ret;
 	}
 	
