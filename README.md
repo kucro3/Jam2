@@ -6,6 +6,11 @@
  
 ## 更新日志 
 
+### Beta #17021801
+* [+]  功能性更新
+
+ > org.kucro3.jam2.jar
+
 ### Preview #17021001
 * [#] 巨大多更新
 * [+] org.kucro3.jam2.simulator
