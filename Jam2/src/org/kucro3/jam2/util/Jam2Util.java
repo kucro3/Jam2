@@ -924,6 +924,21 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return Type.getInternalName(clazz);
 	}
 	
+	public static boolean isClassResource(String resource)
+	{
+		return resource.endsWith(".class");
+	}
+	
+	public static String fromResourceToInternalName(String resource)
+	{
+		return resource.substring(0, resource.length() - 6);
+	}
+	
+	public static String fromInternalNameToResource(String internalName)
+	{
+		return internalName + ".class";
+	}
+	
 	public static String fromDescriptorToInternalName(String desc)
 	{
 		return Type.getType(desc).getInternalName();

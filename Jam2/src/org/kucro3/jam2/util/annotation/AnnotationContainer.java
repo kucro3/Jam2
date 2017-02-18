@@ -103,7 +103,8 @@ public class AnnotationContainer {
 	
 	public void visit(MethodVisitor mv)
 	{
-		defaultValue.visit(mv.visitAnnotationDefault(), null);
+		if(defaultValue != null)
+			defaultValue.visit(mv.visitAnnotationDefault(), null);
 		for(Annotation annotation : annotations.values())
 			annotation.visitOn(mv);
 	}

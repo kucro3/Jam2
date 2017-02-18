@@ -9,7 +9,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.kucro3.jam2.opcode.Instruction.*;
 
-public class InstructionContainer extends MethodVisitor implements Opcodes, Cloneable {
+public class InstructionContainer extends MethodVisitor implements Opcodes {
 	public InstructionContainer()
 	{
 		this(null);
