@@ -322,7 +322,7 @@ public class ClassCacheVisitor extends VisitableFullyModifiableClassContext impl
 		int access;
 	}
 	
-	protected class CachedMethod extends VisitedMethodFullyModifiableCompound
+	public class CachedMethod extends VisitedMethodFullyModifiableCompound
 	{
 		public CachedMethod(MethodContext.FullyModifiable mc, MethodCacheVisitor mv)
 		{
@@ -357,7 +357,7 @@ public class ClassCacheVisitor extends VisitableFullyModifiableClassContext impl
 		}
 	}
 	
-	protected class CachedField extends VisitedFieldFullyModifiableCompound
+	public class CachedField extends VisitedFieldFullyModifiableCompound
 	{
 		public CachedField(FieldContext.FullyModifiable fc, FieldCacheVisitor fv)
 		{

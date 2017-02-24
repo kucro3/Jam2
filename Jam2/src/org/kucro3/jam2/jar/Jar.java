@@ -278,14 +278,14 @@ public class Jar {
 		{
 			if(this.state.equals(ResourceState.SOLID))
 			{
-				this.ris = null;
 				this.state = ResourceState.WRITING;
+				this.ris = null;
 				modCount++;
 			}
 			else
 			{
-				this.ris = new ResourceInputStream(this.ros.toByteArray(), ++modCount);
 				this.state = ResourceState.SOLID;
+				this.ris = new ResourceInputStream(this.ros.toByteArray(), ++modCount);
 			}
 			return this.state;
 		}

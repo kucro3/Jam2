@@ -11,13 +11,6 @@ import org.kucro3.jam2.util.Jam2Util;
 import org.objectweb.asm.ClassReader;
 
 public class JarFile extends Jar {
-	public static void main(String[] args) throws IOException
-	{
-		File file = new File("G:\\GitReleases\\Jam2\\v1.01-preview-#17016204\\Jam2-1-17012604.jar");
-		JarFile jf = new JarFile(file);
-		JarPacker.packTo(jf, "G:\\GitReleases\\Jam2\\v1.01-preview-#17016204\\Jam2-1-17012604.jar.test");
-	}
-	
 	public JarFile(File file) throws IOException
 	{
 		this(file, false);
