@@ -1,11 +1,13 @@
 package org.kucro3.jam2.util.annotation;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.kucro3.util.exception.RuntimeExceptions;
 import org.objectweb.asm.AnnotationVisitor;
@@ -117,6 +119,16 @@ public class Annotation {
 	public void clearValues()
 	{
 		values.clear();
+	}
+	
+	public Collection<Value> values()
+	{
+		return values.values();
+	}
+	
+	public Set<Map.Entry<String, Value>> mapped()
+	{
+		return values.entrySet();
 	}
 	
 	protected boolean visible; // optional
@@ -414,6 +426,11 @@ public class Annotation {
 			return is(INSTANCE_ENUM_VALUE);
 		}
 		
+		public int getInstance()
+		{
+			return bits;
+		}
+		
 		private boolean is(int instance)
 		{
 			assert // bit state check
@@ -428,37 +445,37 @@ public class Annotation {
 		
 		private int bits;
 		
-		private static final int INSTANCE_BYTE = 0x00000001;
+		public static final int INSTANCE_BYTE = 0x00000001;
 		
-		private static final int INSTANCE_BOOLEAN = 0x00000002;
+		public static final int INSTANCE_BOOLEAN = 0x00000002;
 		
-		private static final int INSTANCE_SHORT = 0x00000004;
+		public static final int INSTANCE_SHORT = 0x00000004;
 		
-		private static final int INSTANCE_INTEGER = 0x00000008;
+		public static final int INSTANCE_INTEGER = 0x00000008;
 		
-		private static final int INSTANCE_LONG = 0x00000010;
+		public static final int INSTANCE_LONG = 0x00000010;
 		
-		private static final int INSTANCE_FLOAT = 0x00000020;
+		public static final int INSTANCE_FLOAT = 0x00000020;
 		
-		private static final int INSTANCE_DOUBLE = 0x00000040;
+		public static final int INSTANCE_DOUBLE = 0x00000040;
 		
-		private static final int INSTANCE_CHARACTER = 0x00000080;
+		public static final int INSTANCE_CHARACTER = 0x00000080;
 		
-		private static final int INSTANCE_STRING = 0x00000100;
+		public static final int INSTANCE_STRING = 0x00000100;
 		
-		private static final int INSTANCE_TYPE = 0x00000200;
+		public static final int INSTANCE_TYPE = 0x00000200;
 		
-		private static final int INSTANCE_ENUM_VALUE = 0x00000400;
+		public static final int INSTANCE_ENUM_VALUE = 0x00000400;
 		
-		private static final int INSTANCE_NESTED_ANNOTATION = 0x00000800;
+		public static final int INSTANCE_NESTED_ANNOTATION = 0x00000800;
 		
-		private static final int INSTANCE_ARRAY = 0x01000000;
+		public static final int INSTANCE_ARRAY = 0x01000000;
 		
 		private static final int INSTANCE_PRIM = 0x02000000;
 		
 		private static final int INSTANCE_NUMBER = 0x04000000;
 		
-		private static final int MASK_PRIM_INSTANCE_BITS = 0x0000FFFF;
+		public static final int MASK_PRIM_INSTANCE_BITS = 0x0000FFFF;
 		
 		private static class DescriptorConstants
 		{

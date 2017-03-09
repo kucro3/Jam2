@@ -21,7 +21,7 @@ public abstract class MethodInvoker implements Opcodes {
 		this.descriptor = Jam2Util.toDescriptor(name, returnType, arguments);
 	}
 	
-	public static MethodInvoker newInvoker(Method method)
+	public static MethodInvoker newInvokerByLambda(Method method)
 	{
 		if(!Modifier.isPublic(method.getModifiers()))
 			throw new IllegalArgumentException("method unaccessable");
