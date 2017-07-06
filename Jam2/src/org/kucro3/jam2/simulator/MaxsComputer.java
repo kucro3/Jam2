@@ -91,13 +91,13 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 			break;
 			
 		case GETFIELD:
-			pop(LENGTH_OBJECT);
 			push(slotLength);
+			pop(LENGTH_OBJECT);
 			break;
 			
 		case PUTFIELD:
-			pop(LENGTH_OBJECT);
 			pop(slotLength);
+			pop(LENGTH_OBJECT);
 			break;
 			
 		default:

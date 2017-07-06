@@ -6,6 +6,11 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
 public class ASMRunnableBuilder extends ASMCodeBuilderRoot<ASMRunnableBuilder> implements Opcodes {
+	public static void main(String[] args)
+	{
+		
+	}
+	
 	public static ASMRunnableBuilder newBuilder()
 	{
 		String name;

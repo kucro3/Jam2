@@ -939,6 +939,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return internalName + ".class";
 	}
 	
+	public static String fromInternalNameToDescriptor(String internalName)
+	{
+		return Type.getObjectType(internalName).getDescriptor();
+	}
+	
 	public static String fromDescriptorToInternalName(String desc)
 	{
 		return Type.getType(desc).getInternalName();
