@@ -29,7 +29,7 @@ public class AnnotationValueAdapterVisitor extends AnnotationVisitor {
 		AnnotationVisitor av = super.visitAnnotation(name, desc);
 		Annotation annotation = new Annotation(desc);
 		AnnotationAdapterVisitor aav = new AnnotationAdapterVisitor(av, annotation);
-		value.setValue(aav);
+		value.setValue(annotation);
 		return aav;
 	}
 	
