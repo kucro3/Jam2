@@ -37,7 +37,7 @@ public abstract class MethodInvoker implements Opcodes {
 				null,
 				"java/lang/Object",
 				new String[] {"org/kucro3/jam2/invoke/MethodInvokerLambdaImpl$LambdaInvocation"});
-		Jam2Util.pushCaller(cw, ACC_PUBLIC, "invoke", Contexts.newMethodConstant(method), CallingType.VIRTUAL, true, true);
+		Jam2Util.pushCaller(cw, ACC_PUBLIC, "invoke", Contexts.newMethodConstant(method), CallingType.fromMethod(method), true, true);
 		Jam2Util.pushEmptyConstructor(cw, ACC_PUBLIC, Object.class);
 		cw.visitEnd();
 		
