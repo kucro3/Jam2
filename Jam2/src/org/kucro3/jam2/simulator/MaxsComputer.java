@@ -37,14 +37,25 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 		int index, length = 0;
 		char temp;
 		if((index = descriptor.indexOf('(')) != -1)
-			for(int i = index + 1; i < descriptor.length(); i++)
+			LOOP: for(int i = index + 1; i < descriptor.length(); i++)
 				if((temp = descriptor.charAt(i)) == ')')
 					return length;
-				else if(temp == 'L' || temp == '[')
+				else if(temp == 'L')
 					if((i = descriptor.indexOf(';', i)) != -1)
 						length += LENGTH_OBJECT;
 					else
 						break;
+				else if(temp == '[')
+					for(i++; i < descriptor.length(); i++)
+						if((temp = descriptor.charAt(i)) == '[')
+							continue;
+						else if(temp == 'L')
+							if((i = descriptor.indexOf(';', i)) != -1)
+								length += LENGTH_OBJECT;
+							else
+								break LOOP;
+						else
+							length += LENGTH_OBJECT;
 				else if(temp == 'D' || temp == 'J')
 					length += LENGTH_DOUBLE_OR_LONG;
 				else
