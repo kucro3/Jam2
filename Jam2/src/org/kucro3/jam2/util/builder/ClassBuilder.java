@@ -31,7 +31,7 @@ public class ClassBuilder implements Opcodes {
 	{
 		this.cw = new ClassWriter(flags);
 		this.cw.visit(version, access, this.internalName = name, signature, superName, interfaces);
-	}		
+	}
 	
 	public ClassBuilder appendSource(String source, String debug)
 	{
