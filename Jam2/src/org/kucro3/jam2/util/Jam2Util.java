@@ -7,10 +7,8 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
 
 import org.kucro3.jam2.simulator.MaxsComputer;
 import org.objectweb.asm.ClassVisitor;
@@ -948,6 +946,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		return Type.getType(desc).getInternalName();
 	}
+
+	public static String fromDescriptorToCanonical(String desc)
+	{
+		return fromInternalNameToCanonical(fromDescriptorToInternalName(desc));
+	}
 	
 	public static String fromCanonicalToInternalName(String name)
 	{
@@ -958,7 +961,54 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		return name.replace('/', '.');
 	}
-	
+
+	public static Optional<Class<?>[]> tryFromCanoncialsToClasses(String... names)
+	{
+		return __tryToClasses(names, null);
+	}
+
+	public static Optional<Class<?>> tryFromCanoncialToClass(String name)
+	{
+		Optional<Class<?>[]> optional = tryFromCanoncialsToClasses(name);
+		return optional.isPresent() ? Optional.of(optional.get()[0]) : Optional.empty();
+	}
+
+	public static Optional<Class<?>[]> tryFromInternalNamesToClasses(String... names)
+	{
+		return __tryToClasses(names, (internalName) -> Jam2Util.fromInternalNameToCanonical(internalName));
+	}
+
+	public static Optional<Class<?>> tryFromInternalNameToClass(String name)
+	{
+		Optional<Class<?>[]> optional = tryFromInternalNamesToClasses(name);
+		return optional.isPresent() ? Optional.of(optional.get()[0]) : Optional.empty();
+	}
+
+	public static Optional<Class<?>[]> tryFromDescriptorsToClasses(String... names)
+	{
+		return __tryToClasses(names, (descriptor) -> Jam2Util.fromDescriptorToCanonical(descriptor));
+	}
+
+	public static Optional<Class<?>> tryFromDescriptorToClass(String name)
+	{
+		Optional<Class<?>[]> optional = tryFromDescriptorsToClasses(name);
+		return optional.isPresent() ? Optional.of(optional.get()[0]) : Optional.empty();
+	}
+
+	private static Optional<Class<?>[]> __tryToClasses(String[] names, Function<String, String> func)
+	{
+		Class<?>[] classes = new Class<?>[names.length];
+
+		try {
+			for(int i = 0; i < classes.length; i++)
+				classes[i] = Class.forName(func == null ? names[i] : func.apply(names[i]));
+		} catch (ClassNotFoundException e) {
+			return Optional.empty();
+		}
+
+		return Optional.of(classes);
+	}
+
 	static Type[] _toTypes(String[] descriptors)
 	{
 		Type[] types = new Type[descriptors.length];
@@ -987,6 +1037,30 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		return super.defineClass(name, b, off, len);
 	}
+
+	public Class<?> defClass(ClassLoader loader, byte[] b, int off, int len)
+	{
+		if(METHOD_CLASSLOADER_DEFINECLASS == null)
+			throw new UnsupportedOperationException();
+
+		try {
+			return (Class<?>) METHOD_CLASSLOADER_DEFINECLASS.invoke(loader, b, off, len);
+		} catch (Exception e) {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	public Class<?> defClass(ClassLoader loader, String name, byte[] b, int off, int len)
+	{
+		if(METHOD_CLASSLOADER_DEFINECLASS_WITH_NAME == null)
+			throw new UnsupportedOperationException();
+
+		try {
+			return (Class) METHOD_CLASSLOADER_DEFINECLASS_WITH_NAME.invoke(loader, name, b, off, len);
+		} catch (Exception e) {
+			throw new UnsupportedOperationException();
+		}
+	}
 	
 	private static final Jam2Util INSTANCE = new Jam2Util();
 	
@@ -1002,7 +1076,36 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	private static final int TYPE_DEPENDING_INSN_INDEX_RETURN = 0;
 	
 	private static final int TYPE_DEPENDING_INSN_INDEX_LOCAL_LOAD = 1;
-	
+
+	private static final Method METHOD_CLASSLOADER_DEFINECLASS;
+
+	private static final Method METHOD_CLASSLOADER_DEFINECLASS_WITH_NAME;
+
+	static {
+		// must not use org.kucro3.jam2.invoker here
+		// it will cause a dead loop
+
+		Method mthd = null;
+
+		try {
+			// defineClass(byte[], int, int)
+			mthd = ClassLoader.class.getMethod("defineClass", byte[].class, int.class, int.class);
+			mthd.setAccessible(true);
+		} catch (Exception e) {
+		} finally {
+			METHOD_CLASSLOADER_DEFINECLASS = mthd;
+		}
+
+		try {
+			// defineClass(String, byte[], int, int)
+			mthd = ClassLoader.class.getMethod("defineClass", String.class, byte[].class, int.class, int.class);
+			mthd.setAccessible(true);
+		} catch (Exception e) {
+		} finally {
+			METHOD_CLASSLOADER_DEFINECLASS_WITH_NAME = mthd;
+		}
+	}
+
 	private static interface LAMBDA__TODESCRIPTOR_$0
 	{
 		public String function(Object arg0);

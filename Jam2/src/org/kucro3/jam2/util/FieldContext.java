@@ -2,10 +2,22 @@ package org.kucro3.jam2.util;
 
 import org.objectweb.asm.FieldVisitor;
 
+import java.util.Optional;
+
 public interface FieldContext extends AccessableContext {
 	Object getValue();
+
+	default Optional<Class<?>> tryGetTypeClass()
+	{
+		return Jam2Util.tryFromInternalNameToClass(getDescriptor());
+	}
 	
 	String getDeclaringClass();
+
+	default Optional<Class<?>> tryGetDeclaringClass()
+	{
+		return Jam2Util.tryFromInternalNameToClass(getDeclaringClass());
+	}
 	
 	default void setValue(Object value) {throw new UnsupportedOperationException();}
 	

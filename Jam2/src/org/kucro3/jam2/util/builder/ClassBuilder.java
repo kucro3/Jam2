@@ -2,10 +2,13 @@ package org.kucro3.jam2.util.builder;
 
 import org.kucro3.jam2.util.ClassContext;
 import org.kucro3.jam2.util.Jam2Util;
+import org.kucro3.jam2.util.Version;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.ClassAnnotationBuilder;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
+
+import java.lang.reflect.Modifier;
 
 public class ClassBuilder implements Opcodes {
 	public ClassBuilder(ClassContext cctx)
@@ -112,7 +115,7 @@ public class ClassBuilder implements Opcodes {
 		
 		public Builder name(String name)
 		{
-			this.name = name;
+			this.name = Jam2Util.fromCanonicalToInternalName(name);
 			return this;
 		}
 		
@@ -124,13 +127,49 @@ public class ClassBuilder implements Opcodes {
 		
 		public Builder superclass(String superName)
 		{
-			this.superName = superName;
+			this.superName = Jam2Util.fromCanonicalToInternalName(superName);
 			return this;
 		}
-		
-		public Builder interfaces(String[] interfaces)
+
+		public Builder extend(Class<?> superclass)
 		{
-			this.interfaces = interfaces;
+			int modifiers = superclass.getModifiers();
+
+			if(Modifier.isInterface(modifiers))
+				throw new IllegalArgumentException("Cannot extend a interface");
+
+			if(Modifier.isFinal(modifiers))
+				throw new IllegalArgumentException("Cannot extend a final class");
+
+			return superclass(superclass.getCanonicalName());
+		}
+
+		public Builder implement(Class<?>... interfaces)
+		{
+			String[] internals = new String[interfaces.length];
+
+			for(int i = 0; i < internals.length; i++)
+			{
+				Class<?> clazz = interfaces[i];
+				int modifiers = clazz.getModifiers();
+
+				if(!Modifier.isInterface(modifiers))
+					throw new IllegalArgumentException("Cannot implement a non-interface class");
+
+				internals[i] = clazz.getCanonicalName();
+			}
+
+			return interfaces(internals);
+		}
+		
+		public Builder interfaces(String... interfaces)
+		{
+			String[] ifs = new String[interfaces.length];
+
+			for(int i = 0; i < ifs.length; i++)
+				ifs[i] = Jam2Util.fromCanonicalToInternalName(interfaces[i]);
+
+			this.interfaces = ifs;
 			return this;
 		}
 		
@@ -139,9 +178,9 @@ public class ClassBuilder implements Opcodes {
 			return new ClassBuilder(version, access, name, signature, superName, interfaces);
 		}
 		
-		int version;
+		int version = Version.getClassVersion();
 		
-		int access;
+		int access = ACC_PUBLIC;
 		
 		String name;
 		

@@ -1,7 +1,5 @@
 package org.kucro3.jam2.util;
 
-import org.kucro3.jam2.util.MethodDescriptorIterator;
-
 public class LazyDescriptorAnalyzer {
 	public LazyDescriptorAnalyzer()
 	{
