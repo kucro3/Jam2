@@ -228,17 +228,98 @@ public class Contexts {
 	{
 		return _newFieldContext(field, ConstantFieldContext::new);
 	}
+
+	public static FieldContext newFieldConstant(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor)
+	{
+		return newFieldConstant(declaringClass, modifier, name, descriptor, null);
+	}
+
+	public static FieldContext newFieldConstant(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor,
+												String signature)
+	{
+		return newFieldConstant(declaringClass, modifier, name, descriptor, signature, null);
+	}
+
+	public static FieldContext newFieldConstant(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor,
+												String signature,
+												Object value)
+	{
+		return new ConstantFieldContext(declaringClass, modifier, name, descriptor, signature, value);
+	}
 	
 	public static FieldContext.RestrictedModifiable newFieldRestrictedModifiable(Field field)
 	{
 		return (FieldContext.RestrictedModifiable) _newFieldContext(field, RestrictedModifiableFieldContext::new);
+	}
+
+	public static FieldContext.RestrictedModifiable newFieldRestrictedModifiable(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor)
+	{
+		return newFieldRestrictedModifiable(declaringClass, modifier, name, descriptor, null);
+	}
+
+	public static FieldContext.RestrictedModifiable newFieldRestrictedModifiable(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor,
+												String signature)
+	{
+		return newFieldRestrictedModifiable(declaringClass, modifier, name, descriptor, signature, null);
+	}
+
+	public static FieldContext.RestrictedModifiable newFieldRestrictedModifiable(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor,
+												String signature,
+												Object value)
+	{
+		return new RestrictedModifiableFieldContext(declaringClass, modifier, name, descriptor, signature, value);
 	}
 	
 	public static FieldContext.FullyModifiable newFieldFullyModifiable(Field field)
 	{
 		return (FieldContext.FullyModifiable) _newFieldContext(field, FullyModifiableFieldContext::new);
 	}
-	
+
+	public static FieldContext.FullyModifiable newFieldFullyModifiable(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor)
+	{
+		return newFieldFullyModifiable(declaringClass, modifier, name, descriptor, null);
+	}
+
+	public static FieldContext.FullyModifiable newFieldFullyModifiable(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor,
+												String signature)
+	{
+		return newFieldFullyModifiable(declaringClass, modifier, name, descriptor, signature, null);
+	}
+
+	public static FieldContext.FullyModifiable newFieldFullyModifiable(String declaringClass,
+												int modifier,
+												String name,
+												String descriptor,
+												String signature,
+												Object value)
+	{
+		return new FullyModifiableFieldContext(declaringClass, modifier, name, descriptor, signature, value);
+	}
+
 	static FieldContext _newFieldContext(Field field, NewFieldContextFunction _NewFieldContext)
 	{
 		return _NewFieldContext.newFieldContext(

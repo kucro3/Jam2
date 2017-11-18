@@ -36,12 +36,13 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	{
 		this.cw = new ClassWriter(flags);
 		this.name = name;
-		this.cw.visit(version,
-				access,
-				Jam2Util.fromCanonicalToInternalName(name),
-				signature,
-				Jam2Util.fromCanonicalToInternalName(superName),
-				Jam2Util.fromCanonicalsToInternalNames(interfaces));
+		this.cw.visit(
+				this.version = version,
+				this.access = access,
+				this.internalName = Jam2Util.fromCanonicalToInternalName(name),
+				this.signature = signature,
+				this.superclass = Jam2Util.fromCanonicalToInternalName(superName),
+				this.interfaces = Jam2Util.fromCanonicalsToInternalNames(interfaces));
 		this.view = view;
 	}
 	
@@ -56,12 +57,12 @@ public class ClassBuilder implements Opcodes, ClassContext {
 		cw.visitOuterClass(owner, name, descriptor);
 		return this;
 	}
-	
-	public ClassBuilder appendInnerClass(String name, String outerName, String innerName, int access)
-	{
-		cw.visitInnerClass(name, outerName, innerName, access);
-		return this;
-	}
+
+//	public ClassBuilder appendInnerClass(String name, String outerName, String innerName, int access)
+//	{
+//		cw.visitInnerClass(name, outerName, innerName, access);
+//		return this;
+//	}
 	
 	public ClassAnnotationBuilder appendAnnotation(String desc, boolean visible)
 	{
@@ -75,11 +76,18 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	
 	public FieldBuilder appendField(int access, String name, String desc, String signature, Object value)
 	{
+		FieldContext ctx = Contexts.newFieldConstant(internalName, access, name, desc, signature, value);
+		if(fields.putIfAbsent(name, ctx) != null)
+			throw new IllegalArgumentException("Field duplicated: " + name);
 		return new FieldBuilder(this, cw.visitField(access, name, desc, signature, value));
 	}
 	
 	public MethodBuilder appendMethod(int access, String name, String desc, String signature, String[] exceptions)
 	{
+		MethodContext ctx = Contexts.newMethodConstant(internalName, access, name, desc, signature, exceptions);
+		String descriptor = name + desc;
+		if(methods.putIfAbsent(descriptor, ctx) != null)
+			throw new IllegalArgumentException("Method duplicated: " + descriptor);
 		return new MethodBuilder(this, cw.visitMethod(access, name, desc, signature, exceptions));
 	}
 	
@@ -96,98 +104,117 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	}
 
 	@Override
-	public String getDebug() {
+	public String getDebug()
+	{
+		return debug;
+	}
+
+	@Override
+	public String getEnclosingClass()
+	{
 		return null;
 	}
 
 	@Override
-	public String getEnclosingClass() {
+	public String getEnclosingMethodName()
+	{
 		return null;
 	}
 
 	@Override
-	public String getEnclosingMethodName() {
+	public String getEnclosingMethodDescriptor()
+	{
 		return null;
 	}
 
 	@Override
-	public String getEnclosingMethodDescriptor() {
-		return null;
+	public String[] getInterfaces()
+	{
+		return Arrays.copyOf(interfaces, interfaces.length);
 	}
 
 	@Override
-	public String[] getInterfaces() {
-		return new String[0];
+	public String getSignature()
+	{
+		return signature;
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public String getName()
+	{
+		return internalName;
 	}
 
 	@Override
-	public String getName() {
-		return null;
+	public int getModifier()
+	{
+		return access;
 	}
 
 	@Override
-	public int getModifier() {
-		return 0;
+	public String getSource()
+	{
+		return source;
 	}
 
 	@Override
-	public String getSource() {
-		return null;
+	public String getSuperClass()
+	{
+		return superclass;
 	}
 
 	@Override
-	public String getSuperClass() {
-		return null;
+	public int getVersion()
+	{
+		return version;
 	}
 
 	@Override
-	public int getVersion() {
-		return 0;
+	public boolean containsField(String name)
+	{
+		return fields.containsKey(name);
 	}
 
 	@Override
-	public boolean containsField(String name) {
-		return false;
+	public boolean containsMethod(String descriptor)
+	{
+		return methods.containsKey(descriptor);
 	}
 
 	@Override
-	public boolean containsMethod(String descriptor) {
-		return false;
+	public boolean hasMethod()
+	{
+		return !methods.isEmpty();
 	}
 
 	@Override
-	public boolean hasMethod() {
-		return false;
+	public boolean hasField()
+	{
+		return !fields.isEmpty();
 	}
 
 	@Override
-	public boolean hasField() {
-		return false;
+	public Collection<FieldContext> getFields()
+	{
+		return fields.values();
 	}
 
 	@Override
-	public Collection<FieldContext> getFields() {
-		return null;
+	public FieldContext getField(String name)
+	{
+		return fields.get(name);
 	}
 
 	@Override
-	public FieldContext getField(String name) {
-		return null;
+	public Collection<MethodContext> getMethods()
+	{
+		return methods.values();
 	}
 
 	@Override
-	public Collection<MethodContext> getMethods() {
-		return null;
-	}
-
-	@Override
-	public MethodContext getMethod(String descriptor) {
-		return null;
+	public MethodContext getMethod(String descriptor)
+	{
+		return methods.get(descriptor);
 	}
 	
 	public static Builder builder()
@@ -195,15 +222,31 @@ public class ClassBuilder implements Opcodes, ClassContext {
 		return new Builder();
 	}
 
-	String name;
+	final String name;
+
+	private final int version;
+
+	private final int access;
+
+	private final String internalName;
+
+	private final String[] interfaces;
+
+	private final String signature;
+
+	private final String superclass;
 	
 	Class<?> builded;
-	
+
+	private String source;
+
+	private String debug;
+
 	private final ClassWriter cw;
 
 	private InheritanceView view;
 
-	private final Map<String, MethodContext> method = new HashMap<>();
+	private final Map<String, MethodContext> methods = new HashMap<>();
 
 	private final Map<String, FieldContext> fields = new HashMap<>();
 
