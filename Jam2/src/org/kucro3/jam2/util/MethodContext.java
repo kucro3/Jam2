@@ -2,6 +2,8 @@ package org.kucro3.jam2.util;
 
 import org.objectweb.asm.MethodVisitor;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Optional;
 
 public interface MethodContext extends AccessableContext {
@@ -76,5 +78,15 @@ public interface MethodContext extends AccessableContext {
 	interface Visited extends MethodContext
 	{
 		MethodVisitor getVisitor();
+	}
+
+	interface Reflectable extends MethodContext
+	{
+		Method getMethod();
+	}
+
+	interface ReflectableConstructor extends MethodContext
+	{
+		Constructor<?> getConstructor();
 	}
 }

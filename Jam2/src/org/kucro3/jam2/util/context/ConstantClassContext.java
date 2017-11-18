@@ -56,23 +56,23 @@ public class ConstantClassContext extends NormalMappedClassContext {
 		this.debug = debug;
 	}
 
-	@Override
-	public FieldContext newField(int modifier, String name, String descriptor, String signature,
-			Object value)
-	{
-		ConstantFieldContext fc = new ConstantFieldContext(
-				getName(), modifier, name, descriptor, signature, value);
-		map.putByField(name, fc);
-		return fc;
-	}
-	
-	@Override
-	public MethodContext newMethod(int modifier, String name, String descriptor, String signature,
-			String[] exceptions) 
-	{
-		ConstantMethodContext mc = new ConstantMethodContext(
-				getName(), modifier, name, descriptor, signature, exceptions);
-		map.putByMethod(name, descriptor, mc);
-		return mc;
-	}
+//	@Override
+//	public FieldContext newField(int modifier, String name, String descriptor, String signature,
+//			Object value)
+//	{
+//		ConstantFieldContext fc = new ConstantFieldContext(
+//				getName(), modifier, name, descriptor, signature, value);
+//		map.putByField(name, fc);
+//		return fc;
+//	}
+//
+//	@Override
+//	public MethodContext newMethod(int modifier, String name, String descriptor, String signature,
+//			String[] exceptions)
+//	{
+//		ConstantMethodContext mc = new ConstantMethodContext(
+//				getName(), modifier, name, descriptor, signature, exceptions);
+//		map.putByMethod(name, descriptor, mc);
+//		return mc;
+//	}
 }

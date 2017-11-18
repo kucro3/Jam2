@@ -276,4 +276,9 @@ public interface ClassContext {
 	interface Visitable extends ClassContext
 	{
 	}
+
+	interface Reflectable extends ClassContext
+	{
+		Class<?> getTypeClass();
+	}
 }

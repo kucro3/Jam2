@@ -226,6 +226,9 @@ public class ClassBuilder implements Opcodes, ClassContext {
 
 	public int computeInheritance()
 	{
+		if(inheritanceComputed)
+			return inheritanceDepth;
+
 		int depth = 0;
 		InheritanceView iv = view;
 
@@ -247,7 +250,7 @@ public class ClassBuilder implements Opcodes, ClassContext {
 
 			for(Class<?> clz : stack)
 			{
-				Pair<Integer, Map<String, MethodContext>> mmap = new Pair<>(depth + 1, new HashMap<>());
+				Pair<Integer, Map<String, MethodContext.Reflectable>> mmap = new Pair<>(depth + 1, new HashMap<>());
 				for(Method mthd : clz.getDeclaredMethods())
 					mmap.second().put(
 							Jam2Util.toDescriptor(
@@ -264,7 +267,8 @@ public class ClassBuilder implements Opcodes, ClassContext {
 			iv = iv.tryGetSuperView().orElse(null);
 		}
 
-		return depth;
+		inheritanceComputed = true;
+		return inheritanceDepth = depth;
 	}
 
 	public static Builder builder()
@@ -300,7 +304,16 @@ public class ClassBuilder implements Opcodes, ClassContext {
 
 	private final Map<String, FieldContext> fields = new HashMap<>();
 
-	private final Map<Class<?>, Pair<Integer, Map<String, MethodContext>>> superMethods = new HashMap<>();
+	private final Map<Class<?>, Pair<Integer, Map<String, MethodContext.Reflectable>>> superMethods = new HashMap<>();
+
+	private int inheritanceDepth;
+
+	private boolean inheritanceComputed;
+
+	public static interface MethodFilter
+	{
+
+	}
 
 	public static class Builder
 	{

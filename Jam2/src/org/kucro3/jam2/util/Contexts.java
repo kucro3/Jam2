@@ -4,29 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import org.kucro3.jam2.util.ClassContext;
-import org.kucro3.jam2.util.FieldContext;
-import org.kucro3.jam2.util.Jam2Util;
-import org.kucro3.jam2.util.MethodContext;
-import org.kucro3.jam2.util.Version;
-import org.kucro3.jam2.util.context.ClassCompound;
-import org.kucro3.jam2.util.context.ClassConstantCompound;
-import org.kucro3.jam2.util.context.ClassRestrictedModifiableCompound;
-import org.kucro3.jam2.util.context.ConstantClassContext;
-import org.kucro3.jam2.util.context.ConstantFieldContext;
-import org.kucro3.jam2.util.context.ConstantMethodContext;
-import org.kucro3.jam2.util.context.FieldCompound;
-import org.kucro3.jam2.util.context.FieldConstantCompound;
-import org.kucro3.jam2.util.context.FieldRestrictedModifiableCompound;
-import org.kucro3.jam2.util.context.FullyModifiableClassContext;
-import org.kucro3.jam2.util.context.FullyModifiableFieldContext;
-import org.kucro3.jam2.util.context.FullyModifiableMethodContext;
-import org.kucro3.jam2.util.context.MethodCompound;
-import org.kucro3.jam2.util.context.MethodConstantCompound;
-import org.kucro3.jam2.util.context.MethodRestrictedModifiableCompound;
-import org.kucro3.jam2.util.context.RestrictedModifiableClassContext;
-import org.kucro3.jam2.util.context.RestrictedModifiableFieldContext;
-import org.kucro3.jam2.util.context.RestrictedModifiableMethodContext;
+import org.kucro3.jam2.util.context.*;
 import org.kucro3.jam2.util.context.hook.HookFunction;
 import org.kucro3.jam2.util.context.hook.HookedClassCompound;
 import org.kucro3.jam2.util.context.hook.HookedFieldCompound;
@@ -91,14 +69,14 @@ public class Contexts {
 		return VisitableClassContextCompound.newCompound(ctx);
 	}
 	
-	public static MethodContext newMethodConstant(Method method)
+	public static MethodContext.Reflectable newMethodConstant(Method method)
 	{
-		return _newMethodContext(method, ConstantMethodContext::new);
+		return (MethodContext.Reflectable) _newMethodContext(method, (NewReflectableMethodContextFunction) ReflectableConstantMethodContext::new);
 	}
 	
-	public static MethodContext newMethodConstant(Constructor<?> constructor)
+	public static MethodContext.ReflectableConstructor newMethodConstant(Constructor<?> constructor)
 	{
-		return _newMethodContext(constructor, ConstantMethodContext::new);
+		return (MethodContext.ReflectableConstructor) _newMethodContext(constructor, (NewReflectableConstructorContextFunction) ReflectableConstantConstructorContext::new);
 	}
 
 	public static MethodContext newMethodConstant(String declaringClass,
@@ -210,10 +188,11 @@ public class Contexts {
 				method.getName(),
 				Type.getMethodDescriptor(method),
 				null,
-				Jam2Util.toInternalNames(method.getExceptionTypes()));
+				Jam2Util.toInternalNames(method.getExceptionTypes()),
+				method);
 	}
 	
-	static MethodContext _newMethodContext(Constructor<?> constructor, NewMethodContextFunction _NewMethodContext)
+	static MethodContext _newMethodContext(Constructor<?> constructor, NewConstructorContextFunction _NewMethodContext)
 	{
 		return _NewMethodContext.newMethodContext(
 				Type.getInternalName(constructor.getDeclaringClass()),
@@ -221,12 +200,13 @@ public class Contexts {
 				"<init>",
 				Type.getConstructorDescriptor(constructor),
 				null,
-				Jam2Util.toInternalNames(constructor.getExceptionTypes()));
+				Jam2Util.toInternalNames(constructor.getExceptionTypes()),
+				constructor);
 	}
 	
-	public static FieldContext newFieldConstant(Field field)
+	public static FieldContext.Reflectable newFieldConstant(Field field)
 	{
-		return _newFieldContext(field, ConstantFieldContext::new);
+		return (FieldContext.Reflectable) _newFieldContext(field, (NewReflectableFieldContextFunction) ReflectableConstantFieldContext::new);
 	}
 
 	public static FieldContext newFieldConstant(String declaringClass,
@@ -328,12 +308,13 @@ public class Contexts {
 				field.getName(),
 				Type.getDescriptor(field.getType()),
 				null,
-				null);
+				null,
+				field);
 	}
 	
-	public static ClassContext newClassConstant(Class<?> clz)
+	public static ClassContext.Reflectable newClassConstant(Class<?> clz)
 	{
-		return _newClassContext(clz, ConstantClassContext::new);
+		return (ClassContext.Reflectable) _newClassContext(clz, (NewReflectableClassContextFunction) ReflectableConstantClassContext::new);
 	}
 	
 	public static ClassContext newClassRestrictedModifiable(Class<?> clz)
@@ -402,7 +383,8 @@ public class Contexts {
 				Jam2Util.toInternalNames(clz.getInterfaces()),
 				enclosingClassName,
 				enclosingMethodName,
-				enclosingMethodDescriptor);
+				enclosingMethodDescriptor,
+				clz);
 		
 		for(Field field : clz.getDeclaredFields())
 			cc.newField(newFieldConstant(field));
@@ -488,6 +470,51 @@ public class Contexts {
 				String enclosingClassName,
 				String enclosingMethodName,
 				String enclosingMethodDescriptor
+		);
+
+		default ClassContext newClassContext(
+				int version,
+				int modifier,
+				String name, // internal
+				String signature,
+				String superClass,
+				String[] interfaces,
+				String enclosingClassName,
+				String enclosingMethodName,
+				String enclosingMethodDescriptor,
+				Class<?> clz)
+		{
+			return newClassContext(version, modifier, name, signature, superClass, interfaces, enclosingClassName, enclosingMethodName, enclosingMethodDescriptor);
+		}
+	}
+
+	private interface NewReflectableClassContextFunction extends NewClassContextFunction
+	{
+		default ClassContext newClassContext(
+				int version,
+				int modifier,
+				String name, // internal
+				String signature,
+				String superClass,
+				String[] interfaces,
+				String enclosingClassName,
+				String enclosingMethodName,
+				String enclosingMethodDescriptor)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		ClassContext newClassContext(
+				int version,
+				int modifier,
+				String name, // internal
+				String signature,
+				String superClass,
+				String[] interfaces,
+				String enclosingClassName,
+				String enclosingMethodName,
+				String enclosingMethodDescriptor,
+				Class<?> clz
 			);
 	}
 	
@@ -500,9 +527,45 @@ public class Contexts {
 				String descriptor,
 				String signature,
 				Object value
+		);
+
+		default FieldContext newFieldContext(
+				String declaringClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				Object value,
+				Field field)
+		{
+			return newFieldContext(declaringClass, modifier, name, descriptor, signature, value);
+		}
+	}
+
+	private interface NewReflectableFieldContextFunction extends NewFieldContextFunction
+	{
+		default FieldContext newFieldContext(
+				String declaringClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				Object value)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		FieldContext newFieldContext(
+				String declaringClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				Object value,
+				Field field
 			);
 	}
-	
+
 	private interface NewMethodContextFunction
 	{
 		MethodContext newMethodContext(
@@ -512,6 +575,90 @@ public class Contexts {
 				String descriptor,
 				String signature,
 				String[] exceptions
+		);
+
+		default MethodContext newMethodContext(
+				String declaingClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				String[] exceptions,
+				Method method)
+		{
+			return newMethodContext(declaingClass, modifier, name, descriptor, signature, exceptions);
+		}
+	}
+
+	private interface NewReflectableMethodContextFunction extends NewMethodContextFunction
+	{
+		default MethodContext newMethodContext(
+				String declaingClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				String[] exceptions)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		MethodContext newMethodContext(
+				String declaingClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				String[] exceptions,
+				Method method
+			);
+	}
+
+	private interface NewConstructorContextFunction
+	{
+		MethodContext newMethodContext(
+				String declaingClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				String[] exceptions
+		);
+
+		default MethodContext newMethodContext(
+				String declaingClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				String[] exceptions,
+				Constructor<?> constructor)
+		{
+			return newMethodContext(declaingClass, modifier, name, descriptor, signature, exceptions);
+		}
+	}
+
+	private interface NewReflectableConstructorContextFunction extends NewConstructorContextFunction
+	{
+		default MethodContext newMethodContext(
+				String declaingClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				String[] exceptions)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		MethodContext newMethodContext(
+				String declaingClass,
+				int modifier,
+				String name,
+				String descriptor,
+				String signature,
+				String[] exceptions,
+				Constructor<?> constructor
 			);
 	}
 }
