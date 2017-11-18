@@ -3,6 +3,7 @@ package org.kucro3.jam2.asm;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.kucro3.jam2.simulator.MaxsComputer;
 import org.kucro3.jam2.util.Version;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.LocalVariableAnnotationBuilder;
 import org.objectweb.asm.Handle;
@@ -15,7 +16,7 @@ import org.objectweb.asm.TypePath;
 public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisitor implements Opcodes {
 	protected ASMCodeBuilderRoot(MethodVisitor mv)
 	{
-		super(Version.getASMVersion(), mv);
+		super(Version.getASMVersion(), new MaxsComputer(mv));
 	}
 	
 	public T nop()
@@ -1266,7 +1267,7 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 	{
 		if(computeMaxs)
 			mv.visitMaxs(0, 0);
-		
+
 		return end();
 	}
 	

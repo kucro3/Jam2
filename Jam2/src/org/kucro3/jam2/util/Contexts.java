@@ -100,25 +100,106 @@ public class Contexts {
 	{
 		return _newMethodContext(constructor, ConstantMethodContext::new);
 	}
-	
-	public static MethodContext newMethodRestrictedModifiable(Method method)
+
+	public static MethodContext newMethodConstant(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor)
 	{
-		return _newMethodContext(method, RestrictedModifiableMethodContext::new);
+		return newMethodConstant(declaringClass, modifier, name, descriptor, null);
+	}
+
+	public static MethodContext newMethodConstant(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor,
+												  String signature)
+	{
+		return newMethodConstant(declaringClass, modifier, name, descriptor, signature, null);
+	}
+
+	public static MethodContext newMethodConstant(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor,
+												  String signature,
+												  String[] exceptions)
+	{
+		return new ConstantMethodContext(declaringClass, modifier, name, descriptor, signature, exceptions);
 	}
 	
-	public static MethodContext newMethodRestrictedModifiable(Constructor<?> constructor)
+	public static MethodContext.RestrictedModifiable newMethodRestrictedModifiable(Method method)
 	{
-		return _newMethodContext(constructor, RestrictedModifiableMethodContext::new);
+		return (MethodContext.RestrictedModifiable) _newMethodContext(method, RestrictedModifiableMethodContext::new);
 	}
 	
-	public static MethodContext newMethodFullyModifiable(Method method)
+	public static MethodContext.RestrictedModifiable newMethodRestrictedModifiable(Constructor<?> constructor)
 	{
-		return _newMethodContext(method, FullyModifiableMethodContext::new);
+		return (MethodContext.RestrictedModifiable) _newMethodContext(constructor, RestrictedModifiableMethodContext::new);
+	}
+
+	public static MethodContext.RestrictedModifiable newMethodRestrictedModifiable(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor)
+	{
+		return newMethodRestrictedModifiable(declaringClass, modifier, name, descriptor, null);
+	}
+
+	public static MethodContext.RestrictedModifiable newMethodRestrictedModifiable(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor,
+												  String signature)
+	{
+		return newMethodRestrictedModifiable(declaringClass, modifier, name, descriptor, signature, null);
+	}
+
+	public static MethodContext.RestrictedModifiable newMethodRestrictedModifiable(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor,
+												  String signature,
+												  String[] exceptions)
+	{
+		return new RestrictedModifiableMethodContext(declaringClass, modifier, name, descriptor, signature, exceptions);
 	}
 	
-	public static MethodContext newMethodFullyModifiable(Constructor<?> constructor)
+	public static MethodContext.FullyModifiable newMethodFullyModifiable(Method method)
 	{
-		return _newMethodContext(constructor, FullyModifiableMethodContext::new);
+		return (MethodContext.FullyModifiable) _newMethodContext(method, FullyModifiableMethodContext::new);
+	}
+	
+	public static MethodContext.FullyModifiable newMethodFullyModifiable(Constructor<?> constructor)
+	{
+		return (MethodContext.FullyModifiable) _newMethodContext(constructor, FullyModifiableMethodContext::new);
+	}
+
+	public static MethodContext.FullyModifiable newMethodFullyModifiable(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor)
+	{
+		return newMethodFullyModifiable(declaringClass, modifier, name, descriptor, null);
+	}
+
+	public static MethodContext.FullyModifiable newMethodFullyModifiable(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor,
+												  String signature)
+	{
+		return newMethodFullyModifiable(declaringClass, modifier, name, descriptor, signature, null);
+	}
+
+	public static MethodContext.FullyModifiable newMethodFullyModifiable(String declaringClass,
+												  int modifier,
+												  String name,
+												  String descriptor,
+												  String signature,
+												  String[] exceptions)
+	{
+		return new FullyModifiableMethodContext(declaringClass, modifier, name, descriptor, signature, exceptions);
 	}
 	
 	static MethodContext _newMethodContext(Method method, NewMethodContextFunction _NewMethodContext)
@@ -148,14 +229,14 @@ public class Contexts {
 		return _newFieldContext(field, ConstantFieldContext::new);
 	}
 	
-	public static FieldContext newFieldRestrictedModifiable(Field field)
+	public static FieldContext.RestrictedModifiable newFieldRestrictedModifiable(Field field)
 	{
-		return _newFieldContext(field, RestrictedModifiableFieldContext::new);
+		return (FieldContext.RestrictedModifiable) _newFieldContext(field, RestrictedModifiableFieldContext::new);
 	}
 	
-	public static FieldContext newFieldFullyModifiable(Field field)
+	public static FieldContext.FullyModifiable newFieldFullyModifiable(Field field)
 	{
-		return _newFieldContext(field, FullyModifiableFieldContext::new);
+		return (FieldContext.FullyModifiable) _newFieldContext(field, FullyModifiableFieldContext::new);
 	}
 	
 	static FieldContext _newFieldContext(Field field, NewFieldContextFunction _NewFieldContext)

@@ -946,15 +946,30 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		return resource.substring(0, resource.length() - 6);
 	}
+
+	public static String[] fromResourcesToInternalNames(String... resources)
+	{
+		return __stringProcess(resources, Jam2Util::fromResourceToInternalName);
+	}
 	
 	public static String fromInternalNameToResource(String internalName)
 	{
 		return internalName + ".class";
 	}
-	
+
+	public static String[] fromInternalNamesToResources(String... internalNames)
+	{
+		return __stringProcess(internalNames, Jam2Util::fromInternalNameToResource);
+	}
+
 	public static String fromInternalNameToDescriptor(String internalName)
 	{
 		return Type.getObjectType(internalName).getDescriptor();
+	}
+
+	public static String[] fromInternalNamesToDescriptors(String... internalNames)
+	{
+		return __stringProcess(internalNames, Jam2Util::fromInternalNameToDescriptor);
 	}
 	
 	public static String fromDescriptorToInternalName(String desc)
@@ -962,14 +977,37 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 		return Type.getType(desc).getInternalName();
 	}
 
+	public static String[] fromDescriptorsToInternalNames(String... descriptors)
+	{
+		return __stringProcess(descriptors, Jam2Util::fromDescriptorToInternalName);
+	}
+
 	public static String fromDescriptorToCanonical(String desc)
 	{
 		return fromInternalNameToCanonical(fromDescriptorToInternalName(desc));
+	}
+
+	public static String[] fromDescriptorsToCanonicals(String... descriptors)
+	{
+		return __stringProcess(descriptors, Jam2Util::fromDescriptorToCanonical);
 	}
 	
 	public static String fromCanonicalToInternalName(String name)
 	{
 		return name.replace('.', '/');
+	}
+
+	public static String[] fromCanonicalsToInternalNames(String... names)
+	{
+		return __stringProcess(names, Jam2Util::fromCanonicalToInternalName);
+	}
+
+	static String[] __stringProcess(String[] arr, Function<String, String> processor)
+	{
+		String[] ret = new String[arr.length];
+		for(int i = 0; i < ret.length; i++)
+			ret[i] = processor.apply(arr[i]);
+		return ret;
 	}
 	
 	public static String fromInternalNameToCanonical(String name)

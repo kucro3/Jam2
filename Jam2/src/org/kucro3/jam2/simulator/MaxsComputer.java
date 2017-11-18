@@ -115,7 +115,7 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 			throw new IllegalArgumentException("Illegal opcode: " + opcode);
 		}
 	}
-	
+
 	@Override
 	public void visitIincInsn(int var, int increment)
 	{
@@ -400,25 +400,33 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 	{
 		super.visitVarInsn(opcode, var);
 		if(opcode >= ILOAD && opcode <= ALOAD)
-		{
-			load(var);
-			if(opcode == ALOAD)
-				push(LENGTH_OBJECT);
-			else if(opcode == DLOAD || opcode == LLOAD)
+			if(opcode == DLOAD || opcode == LLOAD)
+			{
+				load(var + 1);
 				push(LENGTH_DOUBLE_OR_LONG);
+			}
 			else
-				push(LENGTH_DEFAULT);
-		}
+			{
+				load(var);
+				if (opcode == ALOAD)
+					push(LENGTH_OBJECT);
+				else
+					push(LENGTH_DEFAULT);
+			}
 		else if(opcode >= ISTORE && opcode <= ASTORE)
-		{
-			if(opcode == ASTORE)
-				pop(LENGTH_OBJECT);
-			else if(opcode == DSTORE || opcode == LSTORE)
+			if(opcode == DSTORE || opcode == DSTORE)
+			{
+				store(var + 1);
 				pop(LENGTH_DOUBLE_OR_LONG);
+			}
 			else
-				pop(LENGTH_DEFAULT);
-			store(var);
-		}
+			{
+				if (opcode == ASTORE)
+					pop(LENGTH_OBJECT);
+				else
+					pop(LENGTH_DEFAULT);
+				store(var);
+			}
 		else
 			throw new IllegalArgumentException("Illegal opcode: " + opcode);
 	}
@@ -486,12 +494,15 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 	@Override
 	public void visitMaxs(int maxStack, int maxLocals)
 	{
-		super.visitMaxs(maxStack, maxLocals);
+		if(maxStack == 0 && maxLocals == 0)
+			visitMaxs();
+		else
+			super.visitMaxs(maxStack, maxLocals);
 	}
 	
 	public void visitMaxs()
 	{
-		visitMaxs(getCurrentStackMax(), getCurrentLocalMax());
+		super.visitMaxs(getCurrentStackMax(), getCurrentLocalMax());
 	}
 	
 	public void visitMaxs(String descriptor, boolean isStatic)

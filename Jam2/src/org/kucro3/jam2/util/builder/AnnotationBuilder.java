@@ -18,12 +18,12 @@ public abstract class AnnotationBuilder<T extends AnnotationBuilder, R> {
 	
 	public AnnotationAnnotationBuilder<AnnotationBuilder<T, R>> appendArray(String name)
 	{
-		return new AnnotationAnnotationBuilder<AnnotationBuilder<T, R>>(av.visitArray(name), this);
+		return new AnnotationAnnotationBuilder<>(av.visitArray(name), this);
 	}
 	
 	public AnnotationAnnotationBuilder<AnnotationBuilder<T, R>> appendAnnotation(String name, String descriptor)
 	{
-		return new AnnotationAnnotationBuilder<AnnotationBuilder<T, R>>(av.visitAnnotation(name, descriptor), this);
+		return new AnnotationAnnotationBuilder<>(av.visitAnnotation(name, descriptor), this);
 	}
 	
 	public T appendEnum(String name, String descriptor, String value)

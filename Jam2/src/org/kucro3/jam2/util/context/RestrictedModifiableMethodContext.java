@@ -12,7 +12,7 @@ public class RestrictedModifiableMethodContext extends NormalMethodContext imple
 	}
 	
 	public RestrictedModifiableMethodContext(String declaringClass,
-			int modifier, String name, String descriptor, String signature, String[] excetpions)
+			int modifier, String name, String descriptor, String signature, String[] exceptions)
 	{
 		super(declaringClass);
 		super.modifier = modifier;

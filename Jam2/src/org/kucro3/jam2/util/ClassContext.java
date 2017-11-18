@@ -101,7 +101,10 @@ public interface ClassContext {
 		return getMethod(Jam2Util.toDescriptor(name, returnType, arguments));
 	}
 	
-	FieldContext newField(int modifier, String name, String descriptor, String signature, Object value);
+	default FieldContext newField(int modifier, String name, String descriptor, String signature, Object value)
+	{
+		throw new UnsupportedOperationException();
+	}
 	
 	default FieldContext newField(FieldContext fc)
 	{
@@ -118,7 +121,10 @@ public interface ClassContext {
 		return newField(modifier, name, descriptor, null, null);
 	}
 	
-	MethodContext newMethod(int modifier, String name, String descriptor, String signature, String[] exceptions);
+	default MethodContext newMethod(int modifier, String name, String descriptor, String signature, String[] exceptions)
+	{
+		throw new UnsupportedOperationException();
+	}
 	
 	default MethodContext newMethod(MethodContext mc)
 	{
@@ -223,12 +229,18 @@ public interface ClassContext {
 		
 		@Override
 		void removeField(String name);
-		
+
+		@Override
+		FieldContext newField(int modifier, String name, String descriptor, String signature, Object value);
+
 		@Override
 		void clearMethods();
 		
 		@Override
 		void removeMethod(String fullDescriptor);
+
+		@Override
+		MethodContext newMethod(int modifier, String name, String descriptor, String signature, String[] exceptions);
 		
 		default void removeMethod(String name, String descriptor)
 		{
