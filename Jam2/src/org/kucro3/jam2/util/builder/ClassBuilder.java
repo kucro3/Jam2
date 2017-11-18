@@ -3,10 +3,12 @@ package org.kucro3.jam2.util.builder;
 import org.kucro3.jam2.util.*;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.ClassAnnotationBuilder;
 import org.kucro3.jam2.util.builder.structure.InheritanceView;
+import org.kucro3.util.Pair;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -216,7 +218,55 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	{
 		return methods.get(descriptor);
 	}
-	
+
+	public InheritanceView getInheritanceView()
+	{
+		return view;
+	}
+
+	public int computeInheritance()
+	{
+		int depth = 0;
+		InheritanceView iv = view;
+
+		while(iv != null)
+		{
+			LinkedList<Class<?>> stack = new LinkedList<>();
+			Optional<Class<?>> optional;
+
+			optional = iv.tryGetSuperClass();
+			if(optional.isPresent())
+				if(!superMethods.containsKey(optional.get()))
+					stack.addLast(optional.get());
+				else
+					throw new IllegalStateException("Duplicated inheritance");
+
+			for(String interf : iv.getInterfaces())
+				if((optional = Jam2Util.tryFromCanoncialToClass(interf)).isPresent())
+					stack.addLast(optional.get());
+
+			for(Class<?> clz : stack)
+			{
+				Pair<Integer, Map<String, MethodContext>> mmap = new Pair<>(depth + 1, new HashMap<>());
+				for(Method mthd : clz.getDeclaredMethods())
+					mmap.second().put(
+							Jam2Util.toDescriptor(
+									mthd.getName(),
+									mthd.getReturnType(),
+									mthd.getParameterTypes()
+							),
+							Contexts.newMethodConstant(mthd)
+					);
+				superMethods.put(clz, mmap);
+			}
+
+			depth++;
+			iv = iv.tryGetSuperView().orElse(null);
+		}
+
+		return depth;
+	}
+
 	public static Builder builder()
 	{
 		return new Builder();
@@ -244,13 +294,13 @@ public class ClassBuilder implements Opcodes, ClassContext {
 
 	private final ClassWriter cw;
 
-	private InheritanceView view;
+	private final InheritanceView view;
 
 	private final Map<String, MethodContext> methods = new HashMap<>();
 
 	private final Map<String, FieldContext> fields = new HashMap<>();
 
-	private final Map<Class<?>, Collection<MethodContext>> superMethods = new HashMap<>();
+	private final Map<Class<?>, Pair<Integer, Map<String, MethodContext>>> superMethods = new HashMap<>();
 
 	public static class Builder
 	{
