@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class InheritanceView {
-    protected InheritanceView(Class<?> clazz, Class<?> superclass, Class<?>[] interfaces)
+    public InheritanceView(Class<?> clazz, Class<?> superclass, Class<?>[] interfaces)
     {
         this.clazz = Objects.requireNonNull(clazz);
         this.interfaceclasses = interfaces == null ? EMPTY_INTERFACES : Arrays.copyOf(interfaces, interfaces.length);
@@ -18,7 +18,7 @@ public class InheritanceView {
         this.supertype = superclass == null ? null : superclass.getCanonicalName();
     }
 
-    protected InheritanceView(String clazz, String superclass, String[] interfaces)
+    public InheritanceView(String clazz, String superclass, String[] interfaces)
     {
         this.name = Objects.requireNonNull(clazz);
         this.supertype = Objects.requireNonNull(superclass);
@@ -33,8 +33,14 @@ public class InheritanceView {
     public static InheritanceView all(Class<?> type)
     {
         InheritanceView iv = of(type);
-        while((iv = iv.tryGetSuperView().orElse(null)) != null);
+        iv.computeAll();
         return iv;
+    }
+
+    public void computeAll()
+    {
+        InheritanceView iv = this;
+        while((iv = iv.tryGetSuperView().orElse(null)) != null);
     }
 
     public Optional<Class<?>> tryGetTypeClass()

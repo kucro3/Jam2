@@ -90,7 +90,7 @@ public class ClassBuilder implements Opcodes {
 	{
 		return new Builder();
 	}
-	
+
 	String internalName;
 	
 	Class<?> builded;
@@ -99,13 +99,14 @@ public class ClassBuilder implements Opcodes {
 
 	private InheritanceView superInheritanceView;
 
-	private final Map<Class<?>, Collection<MethodContext>> methods = new HashMap<>();
+	private final Map<Class<?>, Collection<MethodContext>> superMethods = new HashMap<>();
 
 	public static class Builder
 	{
 		public Builder()
 		{
 			this.superName = "java/lang/Object";
+			this.superclass = Object.class;
 		}
 		
 		public Builder version(int version)
@@ -135,6 +136,8 @@ public class ClassBuilder implements Opcodes {
 		public Builder superclass(String superName)
 		{
 			this.superName = Jam2Util.fromCanonicalToInternalName(superName);
+			this.superclass = null;
+			this.update();
 			return this;
 		}
 
@@ -148,7 +151,10 @@ public class ClassBuilder implements Opcodes {
 			if(Modifier.isFinal(modifiers))
 				throw new IllegalArgumentException("Cannot extend a final class");
 
-			return superclass(superclass.getCanonicalName());
+			this.superName = superclass.getCanonicalName();
+			this.superclass = superclass;
+			this.update();
+			return this;
 		}
 
 		public Builder implement(Class<?>... interfaces)
@@ -166,7 +172,10 @@ public class ClassBuilder implements Opcodes {
 				internals[i] = clazz.getCanonicalName();
 			}
 
-			return interfaces(internals);
+			this.interfaces = internals;
+			this.interfaceClasses = Arrays.copyOf(interfaces, interfaces.length);
+			this.update();
+			return this;
 		}
 		
 		public Builder interfaces(String... interfaces)
@@ -177,14 +186,35 @@ public class ClassBuilder implements Opcodes {
 				ifs[i] = Jam2Util.fromCanonicalToInternalName(interfaces[i]);
 
 			this.interfaces = ifs;
+			this.interfaceClasses = null;
+			this.update();
 			return this;
+		}
+
+		public Builder computeInhertianceView()
+		{
+			(view = new InheritanceView(name, superName, interfaces)).computeAll();
+			return this;
+		}
+
+		public InheritanceView getInheritanceView()
+		{
+			if(view == null)
+				computeInhertianceView();
+
+			return view;
 		}
 		
 		public ClassBuilder build()
 		{
 			return new ClassBuilder(version, access, name, signature, superName, interfaces);
 		}
-		
+
+		void update()
+		{
+			this.view = null;
+		}
+
 		int version = Version.getClassVersion();
 		
 		int access = ACC_PUBLIC;
@@ -196,5 +226,11 @@ public class ClassBuilder implements Opcodes {
 		String superName;
 		
 		String[] interfaces;
+
+		Class<?> superclass;
+
+		Class<?>[] interfaceClasses;
+
+		InheritanceView view;
 	}
 }

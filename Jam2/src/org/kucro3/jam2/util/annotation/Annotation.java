@@ -350,10 +350,11 @@ public class Annotation {
 			}
 			throw new IllegalArgumentException("Illegal annotation element type: " + descriptor);
 		}
-		
-		public Object getValue()
+
+		@SuppressWarnings("unchecked")
+		public <T> T getValue()
 		{
-			return value;
+			return (T) value;
 		}
 		
 		public boolean isNumber()
