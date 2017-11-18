@@ -916,6 +916,21 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		return _toInternalNames(classes);
 	}
+
+	static String[] _toCanonicalNames(Class<?>[] classes)
+	{
+		if(classes == null)
+			return new String[0];
+		String[] names = new String[classes.length];
+		for(int i = 0; i < classes.length; i++)
+			names[i] = classes[i].getCanonicalName();
+		return names;
+	}
+
+	public static String[] toCanonicalNames(Class<?>[] classes)
+	{
+		return _toCanonicalNames(classes);
+	}
 	
 	public static String toInternalName(Class<?> clazz)
 	{
