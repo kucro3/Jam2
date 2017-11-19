@@ -5,11 +5,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.kucro3.jam2.util.context.*;
-import org.kucro3.jam2.util.context.hook.HookFunction;
-import org.kucro3.jam2.util.context.hook.HookedClassCompound;
-import org.kucro3.jam2.util.context.hook.HookedFieldCompound;
-import org.kucro3.jam2.util.context.hook.HookedMethodCompound;
-import org.kucro3.jam2.util.context.hook.HookedVisitableClassCompound;
 import org.kucro3.jam2.util.context.visitable.VisitableClassContext;
 import org.kucro3.jam2.util.context.visitable.VisitableClassContextCompound;
 import org.objectweb.asm.Type;
@@ -396,66 +391,6 @@ public class Contexts {
 			cc.newMethod(newMethodConstant(constructor));
 		
 		return cc;
-	}
-	
-	public static HookedClassCompound hookDirectly(ClassContext ctx, HookFunction... funcs)
-	{
-		return HookedClassCompound.newCompound(ctx, funcs);
-	}
-	
-	public static HookedFieldCompound hookDirectly(FieldContext ctx, HookFunction... funcs)
-	{
-		return HookedFieldCompound.newCompound(ctx, funcs);
-	}
-	
-	public static HookedMethodCompound hookDirectly(MethodContext ctx, HookFunction... funcs)
-	{
-		return HookedMethodCompound.newCompound(ctx, funcs);
-	}
-	
-	public static HookedClassCompound hook(ClassContext ctx, HookFunction... funcs)
-	{
-		HookedClassCompound ret;
-		if(ctx instanceof HookedClassCompound)
-			(ret = (HookedClassCompound) ctx).hook(funcs);
-		else
-			ret = hookDirectly(ctx, funcs);
-		return ret;
-	}
-	
-	public static HookedFieldCompound hook(FieldContext ctx, HookFunction... funcs)
-	{
-		HookedFieldCompound ret;
-		if(ctx instanceof HookedFieldCompound)
-			(ret = (HookedFieldCompound) ctx).hook(funcs);
-		else
-			ret = hookDirectly(ctx, funcs);
-		return ret;
-	}
-	
-	public static HookedMethodCompound hook(MethodContext ctx, HookFunction... funcs)
-	{
-		HookedMethodCompound ret;
-		if(ctx instanceof HookedMethodCompound)
-			(ret = (HookedMethodCompound) ctx).hook(funcs);
-		else
-			ret = hookDirectly(ctx, funcs);
-		return ret;
-	}
-	
-	public static HookedVisitableClassCompound hookDirectly(VisitableClassContext ctx, HookFunction... funcs)
-	{
-		return HookedVisitableClassCompound.newCompound(ctx, funcs);
-	}
-	
-	public static HookedVisitableClassCompound hook(VisitableClassContext ctx, HookFunction... funcs)
-	{
-		HookedVisitableClassCompound ret;
-		if(ctx instanceof HookedVisitableClassCompound)
-			(ret = (HookedVisitableClassCompound) ctx).hook(funcs);
-		else
-			ret = hookDirectly(ctx, funcs);
-		return ret;
 	}
 	
 	private interface NewClassContextFunction
