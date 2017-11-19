@@ -27,9 +27,9 @@ public abstract class MethodCompound implements MethodContext.Compound {
 	}
 
 	@Override
-	public String getDeclaringClass() 
+	public String getDeclaringType()
 	{
-		return ref.getDeclaringClass();
+		return ref.getDeclaringType();
 	}
 
 	@Override

@@ -14,11 +14,11 @@ public interface MethodContext extends AccessableContext {
 		return Jam2Util.tryFromInternalNamesToClasses(getExceptions());
 	}
 	
-	String getDeclaringClass();
+	String getDeclaringType();
 
 	default Optional<Class<?>> tryGetDeclaringClass()
 	{
-		return Jam2Util.tryFromInternalNameToClass(getDeclaringClass());
+		return Jam2Util.tryFromInternalNameToClass(getDeclaringType());
 	}
 
 	default String[] getArguments()

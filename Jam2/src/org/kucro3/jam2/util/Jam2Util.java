@@ -83,7 +83,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			MethodContext cCtx, boolean varags, boolean objReturn)
 	{
 		pushNewInstance(cw, modifiers, methodName,
-				cCtx.getDeclaringClass(), cCtx.getArguments(), cCtx.getExceptions(),
+				cCtx.getDeclaringType(), cCtx.getArguments(), cCtx.getExceptions(),
 				varags, objReturn);
 	}
 	
@@ -115,7 +115,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			FieldContext ctx, boolean objArg, boolean objReturn)
 	{
 		pushFieldGetter(cw, modifiers, name,
-				Objects.requireNonNull(ctx.getDeclaringClass(), "Declaring class needed"), ctx.getName(), ctx.getDescriptor(),
+				Objects.requireNonNull(ctx.getDeclaringType(), "Declaring class needed"), ctx.getName(), ctx.getDescriptor(),
 				FieldType.fromModifier(ctx.getModifier()), objArg, objReturn);
 	}
 	
@@ -158,7 +158,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			FieldContext ctx, boolean objArgument)
 	{
 		pushFieldSetter(cw, modifiers, name,
-				ctx.getDeclaringClass(), ctx.getName(), ctx.getDescriptor(),
+				ctx.getDeclaringType(), ctx.getName(), ctx.getDescriptor(),
 				FieldType.fromModifier(ctx.getModifier()), objArgument);
 	}
 	
@@ -205,7 +205,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	public static void pushGetter(ClassVisitor cw, int modifiers, String name, FieldContext ctx)
 	{
-		pushGetter(cw, modifiers, ctx.getDeclaringClass(),
+		pushGetter(cw, modifiers, ctx.getDeclaringType(),
 				name, ctx.getName(), ctx.getDescriptor(), FieldType.fromModifier(ctx.getModifier()));
 	}
 	
@@ -231,7 +231,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	public static void pushSetter(ClassVisitor cw, int modifiers, String name, FieldContext ctx)
 	{
-		pushSetter(cw, modifiers, ctx.getDeclaringClass(),
+		pushSetter(cw, modifiers, ctx.getDeclaringType(),
 				name, ctx.getName(), ctx.getDescriptor(), FieldType.fromModifier(ctx.getModifier()));
 	}
 	
@@ -258,7 +258,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	
 	public static void pushJavaBean(ClassVisitor cw, FieldContext ctx)
 	{
-		pushJavaBean(cw, ctx.getDeclaringClass(), ctx.getName(), ctx.getDescriptor());
+		pushJavaBean(cw, ctx.getDeclaringType(), ctx.getName(), ctx.getDescriptor());
 	}
 	
 	public static void pushJavaBean(ClassVisitor cw, String ownerInternalName, String fieldName, Class<?> type)
@@ -296,7 +296,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 			boolean vargs, boolean objReturn)
 	{
 		pushCaller(cw, modifiers, name,
-				callingCtx.getDeclaringClass(), callingCtx.getName(), callingCtx.getReturnType(),
+				callingCtx.getDeclaringType(), callingCtx.getName(), callingCtx.getReturnType(),
 				callingCtx.getArguments(), ct, vargs, objReturn);
 	}
 	

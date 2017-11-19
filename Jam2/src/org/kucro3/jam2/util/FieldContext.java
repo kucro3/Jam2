@@ -13,11 +13,11 @@ public interface FieldContext extends AccessableContext {
 		return Jam2Util.tryFromInternalNameToClass(getDescriptor());
 	}
 	
-	String getDeclaringClass();
+	String getDeclaringType();
 
 	default Optional<Class<?>> tryGetDeclaringClass()
 	{
-		return Jam2Util.tryFromInternalNameToClass(getDeclaringClass());
+		return Jam2Util.tryFromInternalNameToClass(getDeclaringType());
 	}
 	
 	default void setValue(Object value) {throw new UnsupportedOperationException();}

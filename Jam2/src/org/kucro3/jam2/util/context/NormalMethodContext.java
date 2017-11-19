@@ -7,7 +7,7 @@ public abstract class NormalMethodContext extends AbstractMethodContext {
 	}
 	
 	@Override
-	public String getDeclaringClass() 
+	public String getDeclaringType()
 	{
 		return declaringClass;
 	}

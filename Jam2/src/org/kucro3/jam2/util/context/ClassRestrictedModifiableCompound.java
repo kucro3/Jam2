@@ -1,6 +1,8 @@
 package org.kucro3.jam2.util.context;
 
 import org.kucro3.jam2.util.ClassContext;
+import org.kucro3.jam2.util.FieldContext;
+import org.kucro3.jam2.util.MethodContext;
 
 public class ClassRestrictedModifiableCompound extends ClassCompound
 		implements ClassContext.RestrictedModifiable {
@@ -87,6 +89,12 @@ public class ClassRestrictedModifiableCompound extends ClassCompound
 	}
 
 	@Override
+	public FieldContext newField(int modifier, String name, String descriptor, String signature, Object value)
+	{
+		return ref.newField(modifier, name, descriptor, signature, value);
+	}
+
+	@Override
 	public void clearMethods() 
 	{
 		ref.clearMethods();
@@ -96,5 +104,11 @@ public class ClassRestrictedModifiableCompound extends ClassCompound
 	public void removeMethod(String fullDescriptor) 
 	{
 		ref.removeMethod(fullDescriptor);
+	}
+
+	@Override
+	public MethodContext newMethod(int modifier, String name, String descriptor, String signature, String[] exceptions)
+	{
+		return ref.newMethod(modifier, name, descriptor, signature, exceptions);
 	}
 }

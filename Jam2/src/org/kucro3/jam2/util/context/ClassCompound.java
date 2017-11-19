@@ -138,19 +138,6 @@ public abstract class ClassCompound implements ClassContext.Compound {
 	}
 
 	@Override
-	public FieldContext newField(int modifier, String name, String descriptor, String signature, Object value) 
-	{
-		return ref.newField(modifier, name, descriptor, signature, value);
-	}
-
-	@Override
-	public MethodContext newMethod(int modifier, String name, String descriptor, String signature,
-			String[] exceptions) 
-	{
-		return ref.newMethod(modifier, name, descriptor, signature, exceptions);
-	}
-
-	@Override
 	public ClassContext getContext() 
 	{
 		return ref;

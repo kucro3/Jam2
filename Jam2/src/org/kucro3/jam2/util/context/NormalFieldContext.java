@@ -7,7 +7,7 @@ public abstract class NormalFieldContext extends AbstractFieldContext {
 	}
 	
 	@Override
-	public String getDeclaringClass() 
+	public String getDeclaringType()
 	{
 		return declaringClass;
 	}

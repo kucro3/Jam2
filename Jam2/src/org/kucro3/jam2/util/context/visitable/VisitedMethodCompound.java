@@ -49,9 +49,9 @@ public abstract class VisitedMethodCompound extends AbstractVisitableMethodConte
 	}
 
 	@Override
-	public String getDeclaringClass() 
+	public String getDeclaringType()
 	{
-		return this.mc.getDeclaringClass();
+		return this.mc.getDeclaringType();
 	}
 
 	@Override

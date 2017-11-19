@@ -49,9 +49,9 @@ public abstract class VisitedFieldCompound extends AbstractVisitableFieldContext
 	}
 
 	@Override
-	public String getDeclaringClass() 
+	public String getDeclaringType()
 	{
-		return this.fc.getDeclaringClass();
+		return this.fc.getDeclaringType();
 	}
 
 	@Override

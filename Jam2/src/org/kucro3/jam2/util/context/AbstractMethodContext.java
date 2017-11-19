@@ -4,7 +4,7 @@ import org.kucro3.jam2.util.MethodContext;
 
 public abstract class AbstractMethodContext extends AbstractAccessableContext implements MethodContext {
 	@Override
-	public abstract String getDeclaringClass();
+	public abstract String getDeclaringType();
 	
 	@Override
 	public String[] getExceptions()

@@ -312,7 +312,7 @@ public class ClassBuilder implements Opcodes, ClassContext {
 
 	public static interface MethodFilter
 	{
-
+		public boolean filter(MethodContext.Reflectable context, int depth);
 	}
 
 	public static class Builder
