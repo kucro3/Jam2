@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.kucro3.jam2.util.annotation.TryCatchAnnotation;
 import org.kucro3.jam2.visitor.InstructionVisitor;
-import org.kucro3.jam2.visitor.cache.AnnotationCacheVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
