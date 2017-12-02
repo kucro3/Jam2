@@ -13,15 +13,25 @@ import java.util.function.Consumer;
 public class ImplementationView implements UniversalView<ImplementationView.Implementations> {
     public static ImplementationView of(Class<?> instance)
     {
-        return of(ClassStack.treeOf(instance));
+        return of(instance, null);
+    }
+
+    public static ImplementationView of(Class<?> instance, ExtensionView extensions)
+    {
+        return of(ClassStack.treeOf(instance), extensions);
     }
 
     static ImplementationView of(ClassStack stack)
     {
-        ImplementationView view = new ImplementationView();
+        return of(stack, null);
+    }
+
+    static ImplementationView of(ClassStack stack, ExtensionView extensions)
+    {
+        ImplementationView view = new ImplementationView(extensions);
 
         Class<?> tmp;
-        while(!stack.isEmpty())
+        while(!stack.empty())
         {
             tmp = stack.pop();
             Implementations impls = view.push();
@@ -30,6 +40,11 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
         }
 
         return view;
+    }
+
+    ImplementationView(ExtensionView extensions)
+    {
+        this.extensions = extensions;
     }
 
     @Override
@@ -62,6 +77,8 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
     }
 
     private final ArrayList<Implementations> implemented = new ArrayList<>();
+
+    final ExtensionView extensions;
 
     public final class Implementations
     {
@@ -102,6 +119,17 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
         {
             String descriptor = Jam2Util.toDescriptor(context.getMethod());
             Method mthd = context.getMethod();
+
+            Optional<ExtensionView.ExtendedMethod> optional;
+            if(extensions != null)
+                if((optional = extensions.getMethod(descriptor)).isPresent())
+                {
+                    ExtensionView.ExtendedMethod extended = optional.get();
+                    if(extended.isOverriding())
+                        return;
+                    extended.overrided = new ExtensionView.ExtendedMethod(null, context);
+                    return;
+                }
 
             if(!mthd.isDefault())
                 if(exists(descriptor) || existed(mthd.getDeclaringClass()))

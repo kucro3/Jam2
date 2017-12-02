@@ -19,7 +19,7 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
         ExtensionView view = new ExtensionView();
 
         stack.pop();
-        while(!stack.isEmpty())
+        while(!stack.empty())
             view.push(stack.pop());
 
         return view;
@@ -32,6 +32,15 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
             prev = extensions.get(extensions.size() - 1);
         extensions.add(ret = new Extension(type, prev));
         return ret;
+    }
+
+    public Optional<ExtendedMethod> getMethod(String descriptor)
+    {
+        ExtendedMethod ret = null;
+        for(int i = extensions.size() - 1; i >= 0; i--)
+            if((ret = extensions.get(i).getMethod0(descriptor)) != null)
+                break;
+        return Optional.ofNullable(ret);
     }
 
     @Override
@@ -56,7 +65,7 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
 
     final ArrayList<Extension> extensions = new ArrayList<>();
 
-    public final class Extension
+    public static final class Extension
     {
         Extension(Class<?> superclass, Extension prev)
         {
@@ -74,6 +83,16 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
         public Class<?> getType()
         {
             return superclass;
+        }
+
+        public Optional<ExtendedMethod> getMethod(String descriptor)
+        {
+            return Optional.ofNullable(getMethod0(descriptor));
+        }
+
+        ExtendedMethod getMethod0(String descriptor)
+        {
+            return methods.get(descriptor);
         }
 
         final void initialize()
@@ -107,7 +126,7 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
         Extension prev;
     }
 
-    public final class ExtendedMethod
+    public static final class ExtendedMethod
     {
         ExtendedMethod(Extension owner, MethodContext.Reflectable context)
         {
@@ -130,9 +149,9 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
             return Optional.ofNullable(overrided);
         }
 
-        public Extension getOwner()
+        public Optional<Extension> getOwner()
         {
-            return owner;
+            return Optional.ofNullable(owner);
         }
 
         ExtendedMethod overrided;
