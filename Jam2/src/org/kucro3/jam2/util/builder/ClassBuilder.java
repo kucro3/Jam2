@@ -3,12 +3,10 @@ package org.kucro3.jam2.util.builder;
 import org.kucro3.jam2.util.*;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.ClassAnnotationBuilder;
 import org.kucro3.jam2.util.builder.structure.InheritanceView;
-import org.kucro3.util.Pair;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -31,7 +29,7 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	
 	public ClassBuilder(int version, int access, String name, String signature, String superName, String[] interfaces, int flags)
 	{
-		this(version, access, name, signature, superName, interfaces, flags, new InheritanceView(name, superName, Arrays.copyOf(interfaces, interfaces.length)));
+		this(version, access, name, signature, superName, interfaces, flags, /* TODO */ null);
 	}
 
 	private ClassBuilder(int version, int access, String name, String signature, String superName, String[] interfaces, int flags, InheritanceView view)
@@ -219,58 +217,6 @@ public class ClassBuilder implements Opcodes, ClassContext {
 		return methods.get(descriptor);
 	}
 
-	public InheritanceView getInheritanceView()
-	{
-		return view;
-	}
-
-	public int computeInheritance()
-	{
-		if(inheritanceComputed)
-			return inheritanceDepth;
-
-		int depth = 0;
-		InheritanceView iv = view;
-
-		while(iv != null)
-		{
-			LinkedList<Class<?>> stack = new LinkedList<>();
-			Optional<Class<?>> optional;
-
-			optional = iv.tryGetSuperClass();
-			if(optional.isPresent())
-				if(!superMethods.containsKey(optional.get()))
-					stack.addLast(optional.get());
-				else
-					throw new IllegalStateException("Duplicated inheritance");
-
-			for(String interf : iv.getInterfaces())
-				if((optional = Jam2Util.tryFromCanoncialToClass(interf)).isPresent())
-					stack.addLast(optional.get());
-
-			for(Class<?> clz : stack)
-			{
-				Pair<Integer, Map<String, MethodContext.Reflectable>> mmap = new Pair<>(depth + 1, new HashMap<>());
-				for(Method mthd : clz.getDeclaredMethods())
-					mmap.second().put(
-							Jam2Util.toDescriptor(
-									mthd.getName(),
-									mthd.getReturnType(),
-									mthd.getParameterTypes()
-							),
-							Contexts.newMethodConstant(mthd)
-					);
-				superMethods.put(clz, mmap);
-			}
-
-			depth++;
-			iv = iv.tryGetSuperView().orElse(null);
-		}
-
-		inheritanceComputed = true;
-		return inheritanceDepth = depth;
-	}
-
 	public static Builder builder()
 	{
 		return new Builder();
@@ -303,12 +249,6 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	private final Map<String, MethodContext> methods = new HashMap<>();
 
 	private final Map<String, FieldContext> fields = new HashMap<>();
-
-	private final Map<Class<?>, Pair<Integer, Map<String, MethodContext.Reflectable>>> superMethods = new HashMap<>();
-
-	private int inheritanceDepth;
-
-	private boolean inheritanceComputed;
 
 	public static interface MethodFilter
 	{
@@ -351,7 +291,6 @@ public class ClassBuilder implements Opcodes, ClassContext {
 		{
 			this.superName = superName;
 			this.superclass = null;
-			this.update();
 			return this;
 		}
 
@@ -367,7 +306,6 @@ public class ClassBuilder implements Opcodes, ClassContext {
 
 			this.superName = superclass.getCanonicalName();
 			this.superclass = superclass;
-			this.update();
 			return this;
 		}
 
@@ -388,7 +326,6 @@ public class ClassBuilder implements Opcodes, ClassContext {
 
 			this.interfaces = canonicals;
 			this.interfaceClasses = Arrays.copyOf(interfaces, interfaces.length);
-			this.update();
 			return this;
 		}
 		
@@ -401,32 +338,12 @@ public class ClassBuilder implements Opcodes, ClassContext {
 
 			this.interfaces = ifs;
 			this.interfaceClasses = null;
-			this.update();
 			return this;
 		}
 
-		public Builder computeInhertianceView()
-		{
-			(view = new InheritanceView(name, superName, interfaces)).computeAll();
-			return this;
-		}
-
-		public InheritanceView getInheritanceView()
-		{
-			if(view == null)
-				computeInhertianceView();
-
-			return view;
-		}
-		
 		public ClassBuilder build()
 		{
-			return new ClassBuilder(version, access, name, signature, superName, interfaces, 0, getInheritanceView());
-		}
-
-		void update()
-		{
-			this.view = null;
+			return new ClassBuilder(version, access, name, signature, superName, interfaces, 0, /* TODO */ null);
 		}
 
 		int version = Version.getClassVersion();
@@ -444,7 +361,5 @@ public class ClassBuilder implements Opcodes, ClassContext {
 		Class<?> superclass;
 
 		Class<?>[] interfaceClasses;
-
-		InheritanceView view;
 	}
 }

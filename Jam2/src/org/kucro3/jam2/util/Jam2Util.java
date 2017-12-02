@@ -891,6 +891,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 				_toDescriptor(returnType, arguments) :
 				(name + _toDescriptor(returnType, arguments));
 	}
+
+	public static String toDescriptor(MethodContext context)
+	{
+		return context.getName() + context.getDescriptor();
+	}
 	
 	public static String toDescriptor(Method mthd)
 	{
