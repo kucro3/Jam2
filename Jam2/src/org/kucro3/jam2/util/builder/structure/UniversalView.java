@@ -5,17 +5,17 @@ import java.util.function.BiConsumer;
 public interface UniversalView<T> {
     public T get(int depth);
 
-    public int getDepth();
+    public int depth();
 
     public default T peek()
     {
-        return get(getDepth());
+        return get(0);
     }
 
     public void foreach(BiConsumer<Integer, T> consumer, int travellingDepth);
 
     public default void foreach(BiConsumer<Integer, T> consumer)
     {
-        foreach(consumer, getDepth());
+        foreach(consumer, depth());
     }
 }

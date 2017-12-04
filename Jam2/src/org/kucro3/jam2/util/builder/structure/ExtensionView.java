@@ -7,6 +7,7 @@ import org.kucro3.jam2.util.MethodContext;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class ExtensionView implements UniversalView<ExtensionView.Extension> {
     public static ExtensionView of(Class<?> instance)
@@ -46,11 +47,11 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
     @Override
     public Extension get(int depth)
     {
-        return extensions.get(depth - 1);
+        return extensions.get(extensions.size() - depth);
     }
 
     @Override
-    public int getDepth()
+    public int depth()
     {
         return extensions.size();
     }
@@ -88,6 +89,11 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
         public Optional<ExtendedMethod> getMethod(String descriptor)
         {
             return Optional.ofNullable(getMethod0(descriptor));
+        }
+
+        public void foreach(Consumer<ExtendedMethod> consumer)
+        {
+            getMethods().forEach(consumer);
         }
 
         ExtendedMethod getMethod0(String descriptor)

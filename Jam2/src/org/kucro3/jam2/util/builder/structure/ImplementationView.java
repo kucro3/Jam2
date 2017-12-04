@@ -30,14 +30,8 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
     {
         ImplementationView view = new ImplementationView(extensions);
 
-        Class<?> tmp;
         while(!stack.empty())
-        {
-            tmp = stack.pop();
-            Implementations impls = view.push();
-            for(Class<?> implemented : tmp.getInterfaces())
-                impls.implement(implemented);
-        }
+            view.push().implementInterfaces(stack.pop());
 
         return view;
     }
@@ -50,11 +44,11 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
     @Override
     public Implementations get(int depth)
     {
-        return implemented.get(depth - 1);
+        return implemented.get(implemented.size() - depth);
     }
 
     @Override
-    public int getDepth()
+    public int depth()
     {
         return implemented.size();
     }
@@ -98,6 +92,12 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
             }
 
             return count;
+        }
+
+        public void implementInterfaces(Class<?> type)
+        {
+            for(Class<?> intrface : type.getInterfaces())
+                implement(intrface);
         }
 
         public boolean implement(Class<?> type)
