@@ -44,7 +44,7 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
     @Override
     public Implementations get(int depth)
     {
-        return implemented.get(implemented.size() - depth);
+        return implemented.get(depth - 1);
     }
 
     @Override

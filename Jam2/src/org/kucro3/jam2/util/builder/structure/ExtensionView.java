@@ -47,7 +47,7 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
     @Override
     public Extension get(int depth)
     {
-        return extensions.get(extensions.size() - depth);
+        return extensions.get(depth - 1);
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.kucro3.jam2.util.builder;
 
 import org.kucro3.jam2.util.*;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.ClassAnnotationBuilder;
+import org.kucro3.jam2.util.builder.structure.ImplementationView;
 import org.kucro3.jam2.util.builder.structure.InheritanceView;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -29,7 +30,7 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	
 	public ClassBuilder(int version, int access, String name, String signature, String superName, String[] interfaces, int flags)
 	{
-		this(version, access, name, signature, superName, interfaces, flags, /* TODO */ null);
+		this(version, access, name, signature, superName, interfaces, flags, null);
 	}
 
 	private ClassBuilder(int version, int access, String name, String signature, String superName, String[] interfaces, int flags, InheritanceView view)
@@ -341,9 +342,28 @@ public class ClassBuilder implements Opcodes, ClassContext {
 			return this;
 		}
 
+		InheritanceView view()
+		{
+			if(superclass == null)
+				return null;
+
+			if(interfaces != null && interfaces.length != 0)
+				if(interfaceClasses == null)
+					return null;
+
+			InheritanceView view = InheritanceView.of(superclass);
+			view.push();
+
+			ImplementationView.Implementations impls = view.getImplementaitions().push();
+			for(Class<?> ifs : interfaceClasses)
+				impls.implement(ifs);
+
+			return view;
+		}
+
 		public ClassBuilder build()
 		{
-			return new ClassBuilder(version, access, name, signature, superName, interfaces, 0, /* TODO */ null);
+			return new ClassBuilder(version, access, name, signature, superName, interfaces, 0, view());
 		}
 
 		int version = Version.getClassVersion();

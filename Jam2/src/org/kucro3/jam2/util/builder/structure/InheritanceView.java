@@ -31,7 +31,7 @@ public class InheritanceView {
         this.implementations = implementations;
     }
 
-    public int getDepth()
+    public int depth()
     {
         return Math.max(extensions.depth(), implementations.depth());
     }
@@ -66,29 +66,33 @@ public class InheritanceView {
 
     public void foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer)
     {
-        foreach(consumer, getDepth());
+        foreach(consumer, depth());
     }
 
     public void foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer, int travellingDepth)
     {
-        if(travellingDepth < 1 || getDepth() < 1)
+        int i;
+
+        if(travellingDepth < 1 || (i = depth()) < 1)
             return;
 
         if(current == null)
-            if(extensions.depth() > 0)
-                extensions.get(1).foreach((m) -> consumer.accept(1, m.getContext()));
+            if(extensions.depth() >= i)
+                extensions.get(i).foreach((m) -> consumer.accept(1, m.getContext()));
 
-        if(implementations.depth() > 0)
-            implementations.get(1).foreach((m) -> consumer.accept(1, m));
+        if(implementations.depth() >= i)
+            implementations.get(i).foreach((m) -> consumer.accept(1, m));
 
-        for(int i = 2; i <= travellingDepth; i++)
+        i--;
+
+        for(int j = 2; i > 0 && j < travellingDepth; i--, j++)
         {
-            final int dp = i;
+            final int dp = j;
 
-            if(extensions.depth() >= dp)
+            if(extensions.depth() >= i)
                 extensions.get(dp).foreach((m) -> consumer.accept(dp, m.getContext()));
 
-            if(implementations.depth() >= dp)
+            if(implementations.depth() >= i)
                 implementations.get(dp).foreach((m) -> consumer.accept(dp, m));
         }
     }
