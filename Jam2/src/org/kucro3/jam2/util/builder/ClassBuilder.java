@@ -2,6 +2,7 @@ package org.kucro3.jam2.util.builder;
 
 import org.kucro3.jam2.util.*;
 import org.kucro3.jam2.util.builder.AnnotationBuilder.ClassAnnotationBuilder;
+import org.kucro3.jam2.util.builder.structure.BuilderStylizedInheritanceView;
 import org.kucro3.jam2.util.builder.structure.ImplementationView;
 import org.kucro3.jam2.util.builder.structure.InheritanceView;
 import org.objectweb.asm.ClassWriter;
@@ -95,6 +96,11 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	public InheritanceView getView()
 	{
 		return view;
+	}
+
+	public BuilderStylizedInheritanceView<ClassBuilder> view()
+	{
+		return new BuilderStylizedInheritanceView<>(this, view);
 	}
 
 	public byte[] buildAsBytes()
