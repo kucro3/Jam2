@@ -64,12 +64,15 @@ public class InheritanceView {
         this.current = instance;
     }
 
-    public void foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer)
+    public void foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer,
+                        final MethodFilter... filters)
     {
-        foreach(consumer, depth());
+        foreach(consumer, depth(), filters);
     }
 
-    public void foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer, int travellingDepth)
+    public void foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer,
+                        int travellingDepth,
+                        final MethodFilter... filters)
     {
         int i;
 
@@ -78,10 +81,14 @@ public class InheritanceView {
 
         if(current == null)
             if(extensions.depth() >= i)
-                extensions.get(i).foreach((m) -> consumer.accept(1, m.getContext()));
+                extensions.get(i).foreach(
+                        (m) -> consumer.accept(1, m.getContext()),
+                        (src, ctx, fdp) -> MethodFilter.match(src, ctx, 1, filters));
 
         if(implementations.depth() >= i)
-            implementations.get(i).foreach((m) -> consumer.accept(1, m));
+            implementations.get(i).foreach(
+                    (m) -> consumer.accept(1, m),
+                    (src, ctx, fdp) -> MethodFilter.match(src, ctx, 1, filters));
 
         i--;
 
@@ -90,10 +97,14 @@ public class InheritanceView {
             final int dp = j;
 
             if(extensions.depth() >= i)
-                extensions.get(dp).foreach((m) -> consumer.accept(dp, m.getContext()));
+                extensions.get(dp).foreach(
+                        (m) -> consumer.accept(dp, m.getContext()),
+                        (src, ctx, fdp) -> MethodFilter.match(src, ctx, dp, filters));
 
             if(implementations.depth() >= i)
-                implementations.get(dp).foreach((m) -> consumer.accept(dp, m));
+                implementations.get(dp).foreach(
+                        (m) -> consumer.accept(dp, m),
+                        (src, ctx, fdp) -> MethodFilter.match(src, ctx, dp, filters));
         }
     }
 

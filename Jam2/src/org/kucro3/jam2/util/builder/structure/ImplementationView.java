@@ -74,19 +74,22 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
 
     final ExtensionView extensions;
 
-    public final class Implementations
+    public final class Implementations implements ViewLayer
     {
         Implementations(Implementations prev)
         {
             this.prev = prev;
         }
 
-        public int foreach(Consumer<MethodContext.Reflectable> consumer)
+        public int foreach(Consumer<MethodContext.Reflectable> consumer, MethodFilter... filters)
         {
             int count = 0;
 
             for(Map.Entry<String, MethodContext.Reflectable> entry : implementedMethods.entrySet())
             {
+                if(!MethodFilter.match(this, entry.getValue(), 0))
+                    continue;
+
                 consumer.accept(entry.getValue());
                 count++;
             }
@@ -127,7 +130,7 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
                     ExtensionView.ExtendedMethod extended = optional.get();
                     if(extended.isOverriding())
                         return;
-                    extended.overrided = new ExtensionView.ExtendedMethod(null, context);
+                    extended.overrided = new ExtensionView.ExtendedMethod(this, context);
                     return;
                 }
 

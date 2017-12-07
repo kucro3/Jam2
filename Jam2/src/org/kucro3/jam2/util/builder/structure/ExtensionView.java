@@ -66,7 +66,7 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
 
     final ArrayList<Extension> extensions = new ArrayList<>();
 
-    public static final class Extension
+    public final class Extension implements ViewLayer
     {
         Extension(Class<?> superclass, Extension prev)
         {
@@ -91,9 +91,20 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
             return Optional.ofNullable(getMethod0(descriptor));
         }
 
-        public void foreach(Consumer<ExtendedMethod> consumer)
+        public int foreach(Consumer<ExtendedMethod> consumer, MethodFilter... filters)
         {
-            getMethods().forEach(consumer);
+            int count = 0;
+
+            for(Map.Entry<String, ExtendedMethod> entry : methods.entrySet())
+            {
+                if(!MethodFilter.match(this, entry.getValue().getContext(), 0, filters))
+                    continue;
+
+                consumer.accept(entry.getValue());
+                count++;
+            }
+
+            return count;
         }
 
         ExtendedMethod getMethod0(String descriptor)
@@ -134,10 +145,20 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
 
     public static final class ExtendedMethod
     {
-        ExtendedMethod(Extension owner, MethodContext.Reflectable context)
+        ExtendedMethod(ViewLayer owner, MethodContext.Reflectable context)
         {
             this.owner = owner;
             this.context = context;
+        }
+
+        public boolean fromInterface()
+        {
+            return owner.formInterface();
+        }
+
+        public boolean fromSuperclass()
+        {
+            return owner.fromSuperclass();
         }
 
         public MethodContext.Reflectable getContext()
@@ -155,15 +176,15 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
             return Optional.ofNullable(overrided);
         }
 
-        public Optional<Extension> getOwner()
+        public ViewLayer getOwner()
         {
-            return Optional.ofNullable(owner);
+            return owner;
         }
 
         ExtendedMethod overrided;
 
         final MethodContext.Reflectable context;
 
-        final Extension owner;
+        final ViewLayer owner;
     }
 }

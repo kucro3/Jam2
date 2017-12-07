@@ -91,7 +91,12 @@ public class ClassBuilder implements Opcodes, ClassContext {
 			throw new IllegalArgumentException("Method duplicated: " + descriptor);
 		return new MethodBuilder(this, cw.visitMethod(access, name, desc, signature, exceptions));
 	}
-	
+
+	public InheritanceView getView()
+	{
+		return view;
+	}
+
 	public byte[] buildAsBytes()
 	{
 		return cw.toByteArray();
@@ -250,11 +255,6 @@ public class ClassBuilder implements Opcodes, ClassContext {
 	private final Map<String, MethodContext> methods = new HashMap<>();
 
 	private final Map<String, FieldContext> fields = new HashMap<>();
-
-	public static interface MethodFilter
-	{
-		public boolean filter(MethodContext.Reflectable context, int depth);
-	}
 
 	public static class Builder
 	{
