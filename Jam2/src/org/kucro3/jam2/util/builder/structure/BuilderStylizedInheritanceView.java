@@ -4,6 +4,8 @@ import org.kucro3.jam2.util.MethodContext;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 public class BuilderStylizedInheritanceView<T> {
     public BuilderStylizedInheritanceView(T upper, InheritanceView view)
@@ -16,6 +18,11 @@ public class BuilderStylizedInheritanceView<T> {
     {
         view.append(instance);
         return this;
+    }
+
+    public BuilderStylizedInheritanceView<T> append(Supplier<Class<?>> instance)
+    {
+        return append(instance.get());
     }
 
     public BuilderStylizedInheritanceView<T> push()
@@ -36,6 +43,20 @@ public class BuilderStylizedInheritanceView<T> {
     {
         view.foreach(consumer, travellingDepth, filters);
         return this;
+    }
+
+    public BuilderStylizedInheritanceView<T> foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer,
+                                                     IntSupplier travellingDepth,
+                                                     MethodFilter... filters)
+    {
+        return foreach(consumer, travellingDepth.getAsInt(), filters);
+    }
+
+    public BuilderStylizedInheritanceView<T> foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer,
+                                                     Supplier<Integer> travellingDepth,
+                                                     MethodFilter... filters)
+    {
+        return foreach(consumer, travellingDepth.get(), filters);
     }
 
     public BuilderStylizedInheritanceView<T> foreach(BiConsumer<Integer, MethodContext.Reflectable> consumer,

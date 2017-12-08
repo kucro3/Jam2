@@ -5,6 +5,8 @@ import org.kucro3.jam2.util.MethodContext;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 public class BuilderStylizedImplementationView<T> {
     public BuilderStylizedImplementationView(T upper, ImplementationView view)
@@ -25,16 +27,41 @@ public class BuilderStylizedImplementationView<T> {
         return this;
     }
 
+    public BuilderStylizedImplementationView<T> foreach(BiConsumer<Integer, ImplementationView.Implementations> consumer,
+                                                        IntSupplier travellingDepth)
+    {
+        return foreach(consumer, travellingDepth.getAsInt());
+    }
+
+    public BuilderStylizedImplementationView<T> foreach(BiConsumer<Integer, ImplementationView.Implementations> consumer,
+                                                        Supplier<Integer> travellingDepth)
+    {
+        return foreach(consumer, travellingDepth.get());
+    }
+
     public BuilderStylizedImplementationView<T> foreach(BiConsumer<Integer, ImplementationView.Implementations> consumer)
     {
         view.foreach(consumer);
         return this;
     }
 
-    public BuilderStylizedImplementationView<T> get(int depth, Consumer<ImplementationView.Implementations> consumer)
+    public BuilderStylizedImplementationView<T> get(int depth,
+                                                    Consumer<ImplementationView.Implementations> consumer)
     {
         consumer.accept(view.get(depth));
         return this;
+    }
+
+    public BuilderStylizedImplementationView<T> get(IntSupplier depth,
+                                                    Consumer<ImplementationView.Implementations> consumer)
+    {
+        return get(depth.getAsInt(), consumer);
+    }
+
+    public BuilderStylizedImplementationView<T> get(Supplier<Integer> depth,
+                                                    Consumer<ImplementationView.Implementations> consumer)
+    {
+        return get(depth.get(), consumer);
     }
 
     public BuilderStylizedImplementationView<T> push(Consumer<ImplementationView.Implementations> consumer)
@@ -95,10 +122,20 @@ public class BuilderStylizedImplementationView<T> {
             return this;
         }
 
+        public BuilderStylizedImplementations<T> implementInterfaces(Supplier<Class<?>> type)
+        {
+            return implementInterfaces(type.get());
+        }
+
         public BuilderStylizedImplementations<T> implement(Class<?> type)
         {
             impls.implement(type);
             return this;
+        }
+
+        public BuilderStylizedImplementations<T> implement(Supplier<Class<?>> type)
+        {
+            return implement(type.get());
         }
 
         public BuilderStylizedImplementations<T> isImplemented(Class<?> type, Consumer<Boolean> consumer)
