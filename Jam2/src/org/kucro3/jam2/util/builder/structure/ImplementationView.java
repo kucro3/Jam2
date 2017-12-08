@@ -42,6 +42,15 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
     }
 
     @Override
+    public boolean contains(MethodContext context)
+    {
+        for(Implementations impls : implemented)
+            if(impls.contains(context))
+                return true;
+        return false;
+    }
+
+    @Override
     public Implementations get(int depth)
     {
         return implemented.get(depth - 1);
@@ -95,6 +104,12 @@ public class ImplementationView implements UniversalView<ImplementationView.Impl
             }
 
             return count;
+        }
+
+        @Override
+        public boolean contains(MethodContext context)
+        {
+            return implementedMethods.containsKey(Jam2Util.toDescriptor(context));
         }
 
         public void implementInterfaces(Class<?> type)

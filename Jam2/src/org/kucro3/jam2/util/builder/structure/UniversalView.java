@@ -1,5 +1,7 @@
 package org.kucro3.jam2.util.builder.structure;
 
+import org.kucro3.jam2.util.MethodContext;
+
 import java.util.function.BiConsumer;
 
 public interface UniversalView<T> {
@@ -18,4 +20,6 @@ public interface UniversalView<T> {
     {
         foreach(consumer, depth());
     }
+
+    public boolean contains(MethodContext context);
 }

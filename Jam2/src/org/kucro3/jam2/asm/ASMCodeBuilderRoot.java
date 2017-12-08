@@ -18,7 +18,12 @@ public class ASMCodeBuilderRoot<T extends ASMCodeBuilderRoot> extends MethodVisi
 	{
 		super(Version.getASMVersion(), new MaxsComputer(mv));
 	}
-	
+
+	protected ASMCodeBuilderRoot(MethodVisitor mv, String descriptor, boolean isStatic)
+	{
+		super(Version.getASMVersion(), new MaxsComputer(mv, descriptor, isStatic));
+	}
+
 	public T nop()
 	{
 		super.visitInsn(NOP);

@@ -45,6 +45,15 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
     }
 
     @Override
+    public boolean contains(MethodContext context)
+    {
+        for(Extension ext : extensions)
+            if(ext.contains(context))
+                return true;
+        return false;
+    }
+
+    @Override
     public Extension get(int depth)
     {
         return extensions.get(depth - 1);
@@ -74,6 +83,12 @@ public class ExtensionView implements UniversalView<ExtensionView.Extension> {
             this.prev = prev;
 
             this.initialize();
+        }
+
+        @Override
+        public boolean contains(MethodContext context)
+        {
+            return methods.containsKey(Jam2Util.toDescriptor(context));
         }
 
         public Collection<ExtendedMethod> getMethods()

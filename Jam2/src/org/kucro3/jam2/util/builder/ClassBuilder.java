@@ -83,6 +83,17 @@ public class ClassBuilder implements Opcodes, ClassContext {
 			throw new IllegalArgumentException("Field duplicated: " + name);
 		return new FieldBuilder(this, cw.visitField(access, name, desc, signature, value));
 	}
+
+	public FieldBuilder append(FieldContext context)
+	{
+		return appendField(
+				context.getModifier(),
+				context.getName(),
+				context.getDescriptor(),
+				context.getSignature(),
+				context.getValue()
+		);
+	}
 	
 	public MethodBuilder appendMethod(int access, String name, String desc, String signature, String[] exceptions)
 	{
@@ -90,7 +101,38 @@ public class ClassBuilder implements Opcodes, ClassContext {
 		String descriptor = name + desc;
 		if(methods.putIfAbsent(descriptor, ctx) != null)
 			throw new IllegalArgumentException("Method duplicated: " + descriptor);
-		return new MethodBuilder(this, cw.visitMethod(access, name, desc, signature, exceptions));
+		return new MethodBuilder(this, cw.visitMethod(access, name, desc, signature, exceptions), access, desc);
+	}
+
+	public MethodBuilder append(MethodContext context)
+	{
+		return appendMethod(
+				context.getModifier(),
+				context.getName(),
+				context.getDescriptor(),
+				context.getSignature(),
+				context.getExceptions()
+		);
+	}
+
+	public MethodBuilder override(MethodContext context)
+	{
+		if(view != null)
+			if(!view.contains(context))
+				throw new IllegalArgumentException("Not overriding any method: " + Jam2Util.toDescriptor(context));
+		return appendMethod(
+				context.getModifier() & (~ACC_ABSTRACT),
+				context.getName(),
+				context.getDescriptor(),
+				context.getSignature(),
+				context.getExceptions()
+		);
+	}
+
+	public ClassBuilder emptyConstructor()
+	{
+		Jam2Util.pushEmptyConstructor(cw, Opcodes.ACC_PUBLIC, superclass);
+		return this;
 	}
 
 	public InheritanceView getView()

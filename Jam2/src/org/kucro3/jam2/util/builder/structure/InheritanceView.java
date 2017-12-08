@@ -52,6 +52,11 @@ public class InheritanceView {
         return true;
     }
 
+    public boolean contains(MethodContext context)
+    {
+        return extensions.contains(context) || implementations.contains(context);
+    }
+
     public void append(Class<?> instance)
     {
         Objects.requireNonNull(instance);

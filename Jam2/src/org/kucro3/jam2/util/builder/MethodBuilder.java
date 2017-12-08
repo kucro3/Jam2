@@ -5,11 +5,15 @@ import org.kucro3.jam2.util.builder.AnnotationBuilder.MethodAnnotationBuilder;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.TypePath;
 
+import java.lang.reflect.Modifier;
+
 public class MethodBuilder {
-	MethodBuilder(ClassBuilder owner, MethodVisitor mv)
+	MethodBuilder(ClassBuilder owner, MethodVisitor mv, int modifier, String descriptor)
 	{
 		this.owner = owner;
 		this.mv = mv;
+		this.descriptor = descriptor;
+		this.isStatic = Modifier.isStatic(modifier);
 	}
 	
 	public MethodCodeBuilder code()
@@ -70,12 +74,16 @@ public class MethodBuilder {
 	private final ClassBuilder owner;
 	
 	private final MethodVisitor mv;
+
+	private final String descriptor;
+
+	private final boolean isStatic;
 	
 	public class MethodCodeBuilder extends ASMCodeBuilderRoot<MethodCodeBuilder>
 	{
 		MethodCodeBuilder() 
 		{
-			super(MethodBuilder.this.mv);
+			super(MethodBuilder.this.mv, descriptor, isStatic);
 		}
 		
 		public MethodBuilder escape()
